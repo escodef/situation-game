@@ -22,15 +22,21 @@
     "format": "npx @biomejs/biome format --write"
   },
   "dependencies": {
+    "dotenv": "^17.2.3",
+    "drizzle-orm": "^0.44.7",
     "express": "^5.2.1",
-    "grammy": "^1.38.4"
+    "grammy": "^1.38.4",
+    "pg": "^8.16.3"
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.8",
     "@types/express": "^5.0.6",
     "@types/node": "^24.10.1",
+    "@types/pg": "^8.15.6",
+    "drizzle-kit": "^0.31.7",
     "nodemon": "^3.1.11",
     "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   }
 }
