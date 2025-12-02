@@ -1,0 +1,36 @@
+{
+  "name": "situation-game",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/escodef/situation-game#readme",
+  "bugs": {
+    "url": "https://github.com/escodef/situation-game/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/escodef/situation-game.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/server.ts",
+    "lint": "npx @biomejs/biome lint --write",
+    "format": "npx @biomejs/biome format --write"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "grammy": "^1.38.4"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.8",
+    "@types/express": "^5.0.6",
+    "@types/node": "^24.10.1",
+    "nodemon": "^3.1.11",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}
