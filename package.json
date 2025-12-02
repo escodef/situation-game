@@ -1,43 +1,45 @@
 {
-  "name": "situation-game",
-  "version": "1.0.0",
-  "description": "",
-  "homepage": "https://github.com/escodef/situation-game#readme",
-  "bugs": {
-    "url": "https://github.com/escodef/situation-game/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/escodef/situation-game.git"
-  },
-  "license": "ISC",
-  "author": "",
-  "type": "module",
-  "main": "index.js",
-  "scripts": {
-    "build": "tsc",
-    "start": "node dist/server.js",
-    "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/server.ts",
-    "lint": "npx @biomejs/biome lint --write",
-    "format": "npx @biomejs/biome format --write"
-  },
-  "dependencies": {
-    "dotenv": "^17.2.3",
-    "drizzle-orm": "^0.44.7",
-    "express": "^5.2.1",
-    "grammy": "^1.38.4",
-    "node-cron": "^4.2.1",
-    "pg": "^8.16.3"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "2.3.8",
-    "@types/express": "^5.0.6",
-    "@types/node": "^24.10.1",
-    "@types/pg": "^8.15.6",
-    "drizzle-kit": "^0.31.7",
-    "nodemon": "^3.1.11",
-    "ts-node": "^10.9.2",
-    "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
-  }
+    "name": "situation-game",
+    "version": "1.0.0",
+    "description": "",
+    "homepage": "https://github.com/escodef/situation-game#readme",
+    "bugs": {
+        "url": "https://github.com/escodef/situation-game/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/escodef/situation-game.git"
+    },
+    "license": "ISC",
+    "author": "",
+    "type": "module",
+    "main": "src/index.ts",
+    "scripts": {
+        "build": "esbuild src/index.ts --bundle --outfile=build/index.js --platform=node --format=esm --packages=external",
+        "start": "node build/index.js",
+        "dev": "tsx watch src/index.ts",
+        "generate": "drizzle-kit generate",
+        "migrate": "tsx src/migrate.ts",
+        "lint": "eslint .",
+        "lint:fix": "eslint . --fix"
+    },
+    "dependencies": {
+        "dotenv": "^17.2.3",
+        "drizzle-orm": "^0.44.7",
+        "express": "^5.2.1",
+        "grammy": "^1.38.4",
+        "node-cron": "^4.2.1",
+        "pg": "^8.16.3"
+    },
+    "devDependencies": {
+        "@biomejs/biome": "2.3.8",
+        "@types/express": "^5.0.6",
+        "@types/node": "^24.10.1",
+        "@types/pg": "^8.15.6",
+        "drizzle-kit": "^0.31.7",
+        "nodemon": "^3.1.11",
+        "ts-node": "^10.9.2",
+        "tsx": "^4.21.0",
+        "typescript": "^5.9.3"
+    }
 }
