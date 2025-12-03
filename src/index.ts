@@ -1,5 +1,16 @@
 import 'dotenv/config';
+import { drizzle } from 'drizzle-orm/node-postgres';
 
-async function bootstrap() {}
+export const db = drizzle({ 
+  connection: { 
+    connectionString: process.env.DATABASE_URL,
+    ssl: false
+  }
+});
+
+
+async function bootstrap() {
+    
+}
 
 bootstrap();

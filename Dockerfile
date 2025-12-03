@@ -1,17 +1,23 @@
-FROM node:25.2-alpine3.22
+FROM oven/bun:1 AS base
+WORKDIR /usr/src/app
 
-RUN mkdir -p /opt/app
+FROM base AS install
 
-WORKDIR /opt/app
+RUN mkdir -p /temp/prod
+COPY package.json bun.lock /temp/prod/
+RUN cd /temp/prod && bun install --frozen-lockfile --production
 
-COPY package*.json ./
+FROM base AS prerelease
+COPY --from=install /temp/dev/node_modules node_modules
+COPY . .
 
-RUN npm install
+RUN bun run build
 
-COPY src/ .
+FROM base AS release
+COPY --from=install /temp/prod/node_modules node_modules
+COPY --from=prerelease /usr/src/app/index.ts .
+COPY --from=prerelease /usr/src/app/package.json .
 
-RUN npm build
-
-EXPOSE 3000
-
-CMD [ "npm", "start"]
+USER bun
+EXPOSE 3000/tcp
+ENTRYPOINT [ "bun", "run", "index.ts" ]

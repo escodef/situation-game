@@ -1,8 +1,16 @@
-import { integer, pgTable, varchar } from 'drizzle-orm/pg-core';
+import { integer, pgEnum, pgTable, uniqueIndex, varchar } from 'drizzle-orm/pg-core';
 
-export const usersTable = pgTable('users', {
-    id: integer().primaryKey().generatedAlwaysAsIdentity(),
-    name: varchar({ length: 255 }).notNull(),
-    age: integer().notNull(),
-    email: varchar({ length: 255 }).notNull().unique(),
-});
+export const rolesEnum = pgEnum('roles', ['user', 'admin']);
+
+export const usersTable = pgTable(
+    'users',
+    {
+        id: integer().primaryKey().generatedAlwaysAsIdentity(),
+        nickname: varchar().notNull(),
+        age: integer(),
+        email: varchar().notNull(),
+        password: varchar(),
+        role: rolesEnum().default('user'),
+    },
+    (table) => [uniqueIndex('email_idx').on(table.email)],
+);
