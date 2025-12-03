@@ -14,8 +14,8 @@
     "author": "",
     "main": "src/index.ts",
     "scripts": {
-        "build": "esbuild src/index.ts --bundle --outfile=build/index.js --platform=node --format=esm --packages=external",
-        "start": "node build/index.js",
+        "build": "esbuild src/index.ts --bundle --outfile=dist/index.js --platform=node --format=esm --packages=external",
+        "start": "node dist/index.js",
         "dev": "tsx watch src/index.ts",
         "generate": "drizzle-kit generate",
         "migrate": "tsx src/migrate.ts",
@@ -26,7 +26,6 @@
         "dotenv": "^17.2.3",
         "drizzle-orm": "^0.44.7",
         "express": "^5.2.1",
-        "grammy": "^1.38.4",
         "node-cron": "^4.2.1",
         "pg": "^8.16.3",
         "zod": "^4.1.13"
@@ -37,7 +36,6 @@
         "@types/node": "^24.10.1",
         "@types/pg": "^8.15.6",
         "drizzle-kit": "^0.31.7",
-        "nodemon": "^3.1.11",
         "ts-node": "^10.9.2",
         "tsx": "^4.21.0",
         "typescript": "^5.9.3"
