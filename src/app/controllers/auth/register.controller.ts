@@ -1,8 +1,8 @@
 import bcrypt from 'bcrypt';
 import { eq } from 'drizzle-orm';
 import { Request, Response } from 'express';
-import { db } from 'src';
 import { playersTable } from 'src/database';
+import { db } from 'src/database/data-source';
 import { z } from 'zod';
 
 const registerSchema = z.object({
@@ -11,7 +11,10 @@ const registerSchema = z.object({
     email: z.email('Invalid email'),
 });
 
-export const registerUser = async (req: Request, res: Response): Promise<void> => {
+export const registerUser = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
     try {
         const parseResult = registerSchema.safeParse(req.body);
 

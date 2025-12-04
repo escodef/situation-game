@@ -12,4 +12,6 @@ export default defineConfig({
         host: process.env.DB_HOST,
         port: parseInt(process.env.DB_PORT || '5432', 10),
     },
+    verbose: true,
+    strict: true,
 });

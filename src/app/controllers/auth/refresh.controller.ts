@@ -1,11 +1,14 @@
 import { eq } from 'drizzle-orm';
 import { Request, Response } from 'express';
-import { db } from 'src';
 import { dayInMS } from 'src/constants';
 import { playersTable } from 'src/database';
+import { db } from 'src/database/data-source';
 import { generateTokens, verifyRefreshToken } from 'src/utils/jwt';
 
-export const refreshToken = async (req: Request, res: Response): Promise<void> => {
+export const refreshToken = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
     try {
         const refreshToken = req.cookies.refreshToken;
 

@@ -1,9 +1,9 @@
 import bcrypt from 'bcrypt';
 import { eq } from 'drizzle-orm';
 import type { Request, Response } from 'express';
-import { db } from 'src';
 import { dayInMS } from 'src/constants/constants';
 import { playersTable } from 'src/database';
+import { db } from 'src/database/data-source';
 import { generateTokens } from 'src/utils/jwt';
 import { z } from 'zod';
 
@@ -43,7 +43,10 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
 
         const player = players[0];
 
-        const isPasswordValid = await bcrypt.compare(password, player.password || '');
+        const isPasswordValid = await bcrypt.compare(
+            password,
+            player.password || ''
+        );
 
         if (!isPasswordValid) {
             res.status(401).json({
@@ -64,7 +67,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
             httpOnly: true,
             secure: true,
             sameSite: 'strict',
-            maxAge: dayInMS
+            maxAge: dayInMS,
         });
 
         res.status(200).json({
@@ -81,4 +84,3 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
         });
     }
 };
-
