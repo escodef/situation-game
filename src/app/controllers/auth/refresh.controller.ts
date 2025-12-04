@@ -2,7 +2,7 @@ import { eq } from 'drizzle-orm';
 import { Request, Response } from 'express';
 import { db } from 'src';
 import { dayInMS } from 'src/constants';
-import { usersTable } from 'src/database';
+import { playersTable } from 'src/database';
 import { generateTokens, verifyRefreshToken } from 'src/utils/jwt';
 
 export const refreshToken = async (req: Request, res: Response): Promise<void> => {
@@ -19,13 +19,13 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
 
         const decoded = verifyRefreshToken(refreshToken);
 
-        const users = await db
+        const players = await db
             .select()
-            .from(usersTable)
-            .where(eq(usersTable.id, decoded.userId))
+            .from(playersTable)
+            .where(eq(playersTable.id, decoded.userId))
             .limit(1);
 
-        if (users.length === 0) {
+        if (players.length === 0) {
             res.status(401).json({
                 success: false,
                 message: 'Invalid refresh token',
@@ -33,11 +33,11 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
             return;
         }
 
-        const user = users[0];
+        const player = players[0];
 
         const tokens = generateTokens({
-            userId: user.id,
-            email: user.email,
+            userId: player.id,
+            email: player.email,
         });
 
         res.cookie('refreshToken', tokens.refreshToken, {

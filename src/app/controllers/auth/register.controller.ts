@@ -2,7 +2,7 @@ import bcrypt from 'bcrypt';
 import { eq } from 'drizzle-orm';
 import { Request, Response } from 'express';
 import { db } from 'src';
-import { usersTable } from 'src/database';
+import { playersTable } from 'src/database';
 import { z } from 'zod';
 
 const registerSchema = z.object({
@@ -28,8 +28,8 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
 
         const existingUser = await db
             .select()
-            .from(usersTable)
-            .where(eq(usersTable.email, email))
+            .from(playersTable)
+            .where(eq(playersTable.email, email))
             .limit(1);
 
         if (existingUser.length > 0) {
@@ -43,8 +43,8 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-        const newUser = await db
-            .insert(usersTable)
+        const newPlayer = await db
+            .insert(playersTable)
             .values({
                 email,
                 password: hashedPassword,
@@ -52,12 +52,12 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
             })
             .returning();
 
-        const { password: _, ...userWithoutPassword } = newUser[0];
+        const { password: _, ...playerWithoutPassword } = newPlayer[0];
 
         res.status(201).json({
             success: true,
             message: 'User registered successfully',
-            user: userWithoutPassword,
+            user: playerWithoutPassword,
         });
     } catch (error) {
         console.error('Registration error:', error);

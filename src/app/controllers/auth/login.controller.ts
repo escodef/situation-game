@@ -3,7 +3,7 @@ import { eq } from 'drizzle-orm';
 import type { Request, Response } from 'express';
 import { db } from 'src';
 import { dayInMS } from 'src/constants/constants';
-import { usersTable } from 'src/database';
+import { playersTable } from 'src/database';
 import { generateTokens } from 'src/utils/jwt';
 import { z } from 'zod';
 
@@ -27,13 +27,13 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
     try {
         const { email, password } = parseResult.data;
 
-        const users = await db
+        const players = await db
             .select()
-            .from(usersTable)
-            .where(eq(usersTable.email, email))
+            .from(playersTable)
+            .where(eq(playersTable.email, email))
             .limit(1);
 
-        if (users.length === 0) {
+        if (players.length === 0) {
             res.status(401).json({
                 success: false,
                 message: 'Invalid email or password',
@@ -41,9 +41,9 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        const user = users[0];
+        const player = players[0];
 
-        const isPasswordValid = await bcrypt.compare(password, user.password || '');
+        const isPasswordValid = await bcrypt.compare(password, player.password || '');
 
         if (!isPasswordValid) {
             res.status(401).json({
@@ -54,11 +54,11 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
         }
 
         const tokens = generateTokens({
-            userId: user.id,
-            email: user.email,
+            userId: player.id,
+            email: player.email,
         });
 
-        const { password: _, ...userWithoutSensitiveData } = user;
+        const { password: _, ...playerWithoutSensitiveData } = player;
 
         res.cookie('refreshToken', tokens.refreshToken, {
             httpOnly: true,
@@ -70,7 +70,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
         res.status(200).json({
             success: true,
             message: 'Login successful',
-            user: userWithoutSensitiveData,
+            user: playerWithoutSensitiveData,
             accessToken: tokens.accessToken,
         });
     } catch (error) {
