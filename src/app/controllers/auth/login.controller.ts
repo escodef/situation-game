@@ -1,6 +1,5 @@
 import bcrypt from 'bcrypt';
 import { eq } from 'drizzle-orm';
-import type { Request, Response } from 'express';
 import { dayInMS } from 'src/constants/constants';
 import { playersTable } from 'src/database';
 import { db } from 'src/database/data-source';
@@ -12,7 +11,7 @@ const loginSchema = z.object({
     password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
-export const loginUser = async (req: Request, res: Response): Promise<void> => {
+export const loginUser = async (req: Request): Promise<void> => {
     const parseResult = loginSchema.safeParse(req.body);
 
     if (!parseResult.success) {
