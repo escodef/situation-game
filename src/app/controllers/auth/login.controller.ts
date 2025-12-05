@@ -57,8 +57,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
         }
 
         const tokens = generateTokens({
-            userId: player.id,
-            email: player.email,
+            playerId: player.id,
         });
 
         const { password: _, ...playerWithoutSensitiveData } = player;

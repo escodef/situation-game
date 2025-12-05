@@ -25,7 +25,7 @@ export const refreshToken = async (
         const players = await db
             .select()
             .from(playersTable)
-            .where(eq(playersTable.id, decoded.userId))
+            .where(eq(playersTable.id, decoded.playerId))
             .limit(1);
 
         if (players.length === 0) {
@@ -39,8 +39,7 @@ export const refreshToken = async (
         const player = players[0];
 
         const tokens = generateTokens({
-            userId: player.id,
-            email: player.email,
+            playerId: player.id,
         });
 
         res.cookie('refreshToken', tokens.refreshToken, {

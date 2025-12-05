@@ -1,5 +1,5 @@
+import { inspect } from 'bun';
 import { sign, verify } from 'jsonwebtoken';
-import { inspect } from 'node:util';
 import { TokenPayload } from '../interfaces';
 
 export const generateTokens = (payload: TokenPayload) => {

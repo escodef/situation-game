@@ -6,10 +6,11 @@ export const statusEnum = pgEnum('status', ['waiting', 'in_progress', 'finished'
 
 export const gamesTable = pgTable('games', {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    ownerId: integer('owner_id').references(() => playersTable.id),
     status: statusEnum().default('waiting'),
     maxPlayers: integer('max_players'),
 });
 
 export const gamesRelations = relations(gamesTable, ({ many }) => ({
-	players: many(playersTable),
+    players: many(playersTable),
 }));
