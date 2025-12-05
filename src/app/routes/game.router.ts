@@ -7,3 +7,5 @@ const gameRouter = Router();
 
 gameRouter.get('/game/:id', authenticate, getGame);
 gameRouter.post('/game', authenticate, createGame);
+
+export default gameRouter;

@@ -22,7 +22,7 @@ export const registerUser = async (
             res.status(422).json({
                 success: false,
                 message: 'Validation failed',
-                errors: z.treeifyError(parseResult.error).errors,
+                errors: z.treeifyError(parseResult.error),
             });
             return;
         }
