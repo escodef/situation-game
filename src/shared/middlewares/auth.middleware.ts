@@ -2,7 +2,7 @@ import { Response } from 'express';
 import { verify } from 'jsonwebtoken';
 import { UserRequest } from '../interfaces';
 
-const authenticate = (req: UserRequest, res: Response, next) => {
+export const authenticate = (req: UserRequest, res: Response, next) => {
     const authHeader = req.headers.authorization;
     const token = authHeader?.split(' ')[1];
 
