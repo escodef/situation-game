@@ -4,7 +4,6 @@ class SocketService {
 
     private constructor() {}
 
-    //  NOTE: менеджер использует паттерн singleton
     public static getInstance(): SocketService {
         if (!SocketService.instance) {
             SocketService.instance = new SocketService();
