@@ -1,9 +1,9 @@
 import { eq } from 'drizzle-orm';
 import { Request, Response } from 'express';
-import { dayInMS } from 'src/constants';
-import { playersTable } from 'src/database';
 import { db } from 'src/database/data-source';
-import { generateTokens, verifyRefreshToken } from 'src/utils/jwt';
+import { playersTable } from 'src/database/schemas';
+import { dayInMS } from 'src/shared';
+import { generateTokens, verifyRefreshToken } from 'src/shared/utils/jwt';
 
 export const refreshToken = async (
     req: Request,

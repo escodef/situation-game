@@ -1,10 +1,6 @@
-import { inspect } from 'node:util';
 import { sign, verify } from 'jsonwebtoken';
-
-interface TokenPayload {
-    userId: number;
-    email: string;
-}
+import { inspect } from 'node:util';
+import { TokenPayload } from '../interfaces';
 
 export const generateTokens = (payload: TokenPayload) => {
     const accessToken = sign(payload, process.env.JWT_ACCESS_SECRET, {

@@ -1,9 +1,10 @@
 import bcrypt from 'bcrypt';
 import { eq } from 'drizzle-orm';
-import { dayInMS } from 'src/constants/constants';
-import { playersTable } from 'src/database';
+import { Request, Response } from 'express';
 import { db } from 'src/database/data-source';
-import { generateTokens } from 'src/utils/jwt';
+import { playersTable } from 'src/database/schemas';
+import { dayInMS } from 'src/shared';
+import { generateTokens } from 'src/shared/utils/jwt';
 import { z } from 'zod';
 
 const loginSchema = z.object({
@@ -11,7 +12,7 @@ const loginSchema = z.object({
     password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
-export const loginUser = async (req: Request): Promise<void> => {
+export const loginUser = async (req: Request, res: Response): Promise<void> => {
     const parseResult = loginSchema.safeParse(req.body);
 
     if (!parseResult.success) {

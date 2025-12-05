@@ -1,8 +1,8 @@
 import bcrypt from 'bcrypt';
 import { eq } from 'drizzle-orm';
 import { Request, Response } from 'express';
-import { playersTable } from 'src/database';
 import { db } from 'src/database/data-source';
+import { playersTable } from 'src/database/schemas';
 import { z } from 'zod';
 
 const registerSchema = z.object({
