@@ -1,4 +1,3 @@
-import bcrypt from 'bcrypt';
 import { eq } from 'drizzle-orm';
 import { Request, Response } from 'express';
 import { db } from 'src/database/data-source';
@@ -11,10 +10,7 @@ const registerSchema = z.object({
     email: z.email('Invalid email'),
 });
 
-export const registerUser = async (
-    req: Request,
-    res: Response
-): Promise<void> => {
+export const registerUser = async (req: Request, res: Response): Promise<void> => {
     try {
         const parseResult = registerSchema.safeParse(req.body);
 
@@ -44,7 +40,10 @@ export const registerUser = async (
         }
 
         const saltRounds = 10;
-        const hashedPassword = await bcrypt.hash(password, saltRounds);
+        const hashedPassword = await Bun.password.hash(password, {
+            algorithm: 'bcrypt',
+            cost: saltRounds,
+        });
 
         const newPlayer = await db
             .insert(playersTable)

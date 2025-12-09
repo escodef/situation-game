@@ -1,4 +1,3 @@
-import bcrypt from 'bcrypt';
 import { eq } from 'drizzle-orm';
 import { Request, Response } from 'express';
 import { db } from 'src/database/data-source';
@@ -43,10 +42,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
 
         const player = players[0];
 
-        const isPasswordValid = await bcrypt.compare(
-            password,
-            player.password || ''
-        );
+        const isPasswordValid = await Bun.password.verify(password, player.password, 'bcrypt');
 
         if (!isPasswordValid) {
             res.status(401).json({
