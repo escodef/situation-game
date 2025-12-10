@@ -2,7 +2,6 @@ import { ServerWebSocket } from 'bun';
 
 export interface SocketData {
     userId: number;
-    email: string;
     token: string;
 }
 
