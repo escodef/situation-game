@@ -1,5 +1,5 @@
 import { ServerWebSocket } from 'bun';
-import { SocketData, SocketMessage } from './interfaces/message.interfaces';
+import { SocketData, SocketMessage } from './interfaces/message.interface';
 
 interface ActiveUser {
     userId: number;
@@ -12,8 +12,6 @@ export class WebsocketManager {
     private readonly users: Map<number, ActiveUser> = new Map();
     private readonly rooms: Map<string, Set<number>> = new Map();
 
-    constructor() {}
-
     public static getInstance(): WebsocketManager {
         if (!WebsocketManager.instance) {
             WebsocketManager.instance = new WebsocketManager();
@@ -21,10 +19,7 @@ export class WebsocketManager {
         return WebsocketManager.instance;
     }
 
-    public handleConnect(
-        ws: ServerWebSocket<SocketData>,
-        userId: number
-    ): void {
+    public handleConnect(ws: ServerWebSocket<SocketData>, userId: number): void {
         const activeUser: ActiveUser = { userId, ws };
         this.users.set(userId, activeUser);
         console.log(`User ${userId} connected.`);
@@ -52,7 +47,7 @@ export class WebsocketManager {
             this.rooms.set(roomId, new Set());
         }
 
-        this.rooms.get(roomId)!.add(userId);
+        this.rooms.get(roomId).add(userId);
     }
 
     public leaveRoom(userId: number, roomId: string): void {
@@ -76,11 +71,7 @@ export class WebsocketManager {
         }
     }
 
-    public sendToRoom(
-        roomId: string,
-        message: SocketMessage,
-        excludeUserId?: number
-    ): void {
+    public sendToRoom(roomId: string, message: SocketMessage, excludeUserId?: number): void {
         const userIds = this.rooms.get(roomId);
         if (userIds) {
             const messageString = JSON.stringify(message);

@@ -1,6 +1,6 @@
-import { integer, pgTable, varchar } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, varchar } from 'drizzle-orm/pg-core';
 
 export const memesTable = pgTable('memes', {
-    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    id: uuid().defaultRandom(),
     url: varchar().notNull(),
 });

@@ -1,56 +1,59 @@
 import Bun from 'bun';
-import express from 'express';
-import appRouter from './routes/app.router';
+import { verifyAccessToken } from 'src/shared/utils/jwt';
+import { handleRoutes } from './routes';
+import { SocketData } from './socket/interfaces/message.interface';
+import { handleMessage } from './socket/websocket.handler';
+import { WebsocketManager } from './socket/websocket.manager';
 
 export const createApp = () => {
-    const app = express();
+    const wsManager = WebsocketManager.getInstance();
     const PORT = Bun.env.PORT || 3000;
 
-    app.use(express.json());
+    const server = Bun.serve<SocketData>({
+        port: PORT,
 
-    app.get('/', (_req, res) => {
-        res.status(200).json({
-            success: true,
-            message: 'сосируй',
-        });
-    });
-
-    app.use(appRouter);
-
-    const server = Bun.serve({
-        fetch(req, server) {
+        async fetch(req, server) {
             const url = new URL(req.url);
 
-            // сделать проверку есть ли в ссылке /ws (или как то нужно по другому придумать как отличать обычные рест запросы, от подруба сокету)
-            // тут из headers нужно взять токен пользователя, сделать запрос в бд, найти его и вызвать websocket manager instanse
-            // чтобы воспользоваться методом handleConnection (котоорый сохранит пользователя в map структуру)
+            if (url.pathname === '/ws') {
+                const token = url.searchParams.get('token');
+
+                if (!token) {
+                    return new Response('Token required', { status: 401 });
+                }
+
+                const payload = verifyAccessToken(token);
+
+                if (!payload) {
+                    return new Response('Invalid or expired token', { status: 403 });
+                }
+
+                const success = server.upgrade(req, {
+                    data: {
+                        userId: payload.id,
+                        token: token,
+                    },
+                });
+
+                if (success) return undefined;
+                return new Response('WebSocket upgrade failed', { status: 500 });
+            }
+
+            return await handleRoutes(req);
         },
+
         websocket: {
-            data: {} as { username: string }, // это данные )))))
             open(ws) {
-                // тут наверноие и ниче не надо пока что, проверку на авторизацию делается в fetch
+                wsManager.handleConnect(ws, ws.data.userId);
             },
             message(ws, message) {
-                /// ооо а вот тут поебаться нужно будет, нужно сделать websocket.handler.ts файл, в нем нужно сделать функцию handleMessage
-                // в handleMessage нужно будет во первых проверку на валидность данных сделать, соотвествует ли данные структуре {eventName: string, data: T}
-                // во вторых нужно будет вызывать processors (это хуйни которые будут выполнять саму логику события),
-                // допустим пришло событие ban (забанить пользователя в руме (это как пример просто)), в handleMessage
-                // полетит новое событие, в свою очередь эта функция пробежится по switch-case,
-                // проверит есть ли processor для такого eventName, если да,
-                // тогда вызываем функцию (которая реализует логику бана) из ban.proccessor.ts
-                // опять же если простым языком processor это как метод в service в несте
+                handleMessage(ws, message);
             },
             close(ws) {
-                // тут вызвать из инстанса сокет менеджера handleDisconection чтобы убрать из map пользователя
+                wsManager.handleDisconnect(ws.data.userId);
             },
         },
     });
 
-    console.log(
-        `Websocket is running on port ${server.hostname}:${server.port}`
-    );
-
-    app.listen(PORT, () => {
-        console.log(`Server is running on port ${PORT}`);
-    });
+    console.log(`Server is running on port ${server.port}`);
 };

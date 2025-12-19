@@ -5,12 +5,12 @@ export interface SocketData {
     token: string;
 }
 
-export interface SocketMessage<T = unknown> {
+export interface SocketMessage<T = any> {
     event: string;
     data: T;
 }
 
 export type SocketProcessor<T = any> = (
     ws: ServerWebSocket<SocketData>,
-    data: T
+    data: T,
 ) => void | Promise<void>;

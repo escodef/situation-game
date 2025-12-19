@@ -1,7 +1,6 @@
 import { eq } from 'drizzle-orm';
-import { Request, Response } from 'express';
 import { db } from 'src/database/data-source';
-import { playersTable } from 'src/database/schemas';
+import { userTable } from 'src/database/schemas';
 import { z } from 'zod';
 
 const registerSchema = z.object({
@@ -10,43 +9,47 @@ const registerSchema = z.object({
     email: z.email('Invalid email'),
 });
 
-export const registerUser = async (req: Request, res: Response): Promise<void> => {
+export const registerUser = async (req: Request): Promise<Response> => {
     try {
-        const parseResult = registerSchema.safeParse(req.body);
+        const body = await req.json();
+        const parseResult = registerSchema.safeParse(body);
 
         if (!parseResult.success) {
-            res.status(422).json({
-                success: false,
-                message: 'Validation failed',
-                errors: z.treeifyError(parseResult.error),
-            });
-            return;
+            return Response.json(
+                {
+                    success: false,
+                    message: 'Validation failed',
+                    errors: z.treeifyError(parseResult.error),
+                },
+                { status: 422 },
+            );
         }
 
         const { email, password, nickname } = parseResult.data;
 
         const existingUser = await db
             .select()
-            .from(playersTable)
-            .where(eq(playersTable.email, email))
+            .from(userTable)
+            .where(eq(userTable.email, email))
             .limit(1);
 
         if (existingUser.length > 0) {
-            res.status(409).json({
-                success: false,
-                message: 'User with this email already exists',
-            });
-            return;
+            return Response.json(
+                {
+                    success: false,
+                    message: 'User with this email already exists',
+                },
+                { status: 409 },
+            );
         }
 
-        const saltRounds = 10;
         const hashedPassword = await Bun.password.hash(password, {
             algorithm: 'bcrypt',
-            cost: saltRounds,
+            cost: 10,
         });
 
-        const newPlayer = await db
-            .insert(playersTable)
+        const newUser = await db
+            .insert(userTable)
             .values({
                 email,
                 password: hashedPassword,
@@ -54,18 +57,24 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
             })
             .returning();
 
-        const { password: _, ...playerWithoutPassword } = newPlayer[0];
+        const { password: _, ...userWithoutPassword } = newUser[0];
 
-        res.status(201).json({
-            success: true,
-            message: 'User registered successfully',
-            user: playerWithoutPassword,
-        });
+        return Response.json(
+            {
+                success: true,
+                message: 'User registered successfully',
+                user: userWithoutPassword,
+            },
+            { status: 201 },
+        );
     } catch (error) {
         console.error('Registration error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Internal server error',
-        });
+        return Response.json(
+            {
+                success: false,
+                message: 'Internal server error',
+            },
+            { status: 500 },
+        );
     }
 };

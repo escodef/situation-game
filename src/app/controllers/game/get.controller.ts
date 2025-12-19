@@ -1,35 +1,62 @@
 import { eq } from 'drizzle-orm';
-import { Response } from 'express';
 import { db } from 'src/database/data-source';
 import { gamesTable } from 'src/database/schemas';
-import { UserRequest } from 'src/shared';
 import z from 'zod';
 
-const createDto = z.object({
-    id: z.int(),
+const getGameDto = z.object({
+    id: z.uuid(),
 });
 
-export const getGame = async (req: UserRequest, res: Response): Promise<void> => {
-    const parseResult = createDto.safeParse(req.params);
+export const getGame = async (req: Request): Promise<Response> => {
+    try {
+        const { searchParams } = new URL(req.url);
+        const gameId = searchParams.get('id');
 
-    if (!parseResult.success) {
-        res.status(422).json({
-            success: false,
-            message: 'Validation failed',
-            errors: z.treeifyError(parseResult.error).errors,
-        });
-        return;
+        const parseResult = getGameDto.safeParse({ id: gameId });
+
+        if (!parseResult.success) {
+            return Response.json(
+                {
+                    success: false,
+                    message: 'Validation failed',
+                    errors: z.treeifyError(parseResult.error).errors,
+                },
+                { status: 422 },
+            );
+        }
+
+        const game = await db
+            .select()
+            .from(gamesTable)
+            .where(eq(gamesTable.id, parseResult.data.id))
+            .limit(1);
+
+        if (game.length === 0) {
+            return Response.json(
+                {
+                    success: false,
+                    message: 'Game not found',
+                },
+                { status: 404 },
+            );
+        }
+
+        return Response.json(
+            {
+                success: true,
+                message: 'Game fetched successfully',
+                game: game[0],
+            },
+            { status: 200 },
+        );
+    } catch (error) {
+        console.error('Get Game Error:', error);
+        return Response.json(
+            {
+                success: false,
+                message: 'Internal server error',
+            },
+            { status: 500 },
+        );
     }
-
-    const game = await db
-        .select()
-        .from(gamesTable)
-        .where(eq(gamesTable.id, parseResult.data.id))
-        .limit(1);
-
-    res.status(200).json({
-        success: true,
-        message: 'Game created successfully',
-        game
-    });
 };

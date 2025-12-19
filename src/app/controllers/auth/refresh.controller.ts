@@ -1,64 +1,71 @@
 import { eq } from 'drizzle-orm';
-import { Request, Response } from 'express';
 import { db } from 'src/database/data-source';
-import { playersTable } from 'src/database/schemas';
+import { userTable } from 'src/database/schemas';
 import { dayInMS } from 'src/shared';
 import { generateTokens, verifyRefreshToken } from 'src/shared/utils/jwt';
 
-export const refreshToken = async (
-    req: Request,
-    res: Response
-): Promise<void> => {
+export const refreshTokenController = async (req: Request): Promise<Response> => {
     try {
-        const refreshToken = req.cookies.refreshToken;
+        const cookieHeader = req.headers.get('cookie') || '';
+        const cookies = Object.fromEntries(
+            cookieHeader.split('; ').map(c => c.split('='))
+        );
+        
+        const refreshToken = cookies['refreshToken'];
 
         if (!refreshToken) {
-            res.status(401).json({
+            return Response.json({
                 success: false,
                 message: 'Refresh token not found',
-            });
-            return;
+            }, { status: 401 });
         }
 
         const decoded = verifyRefreshToken(refreshToken);
-
-        const players = await db
-            .select()
-            .from(playersTable)
-            .where(eq(playersTable.id, decoded.playerId))
-            .limit(1);
-
-        if (players.length === 0) {
-            res.status(401).json({
+        
+        if (!decoded || !decoded.playerId) {
+            return Response.json({
                 success: false,
-                message: 'Invalid refresh token',
-            });
-            return;
+                message: 'Invalid or expired refresh token',
+            }, { status: 401 });
         }
 
-        const player = players[0];
+        const users = await db
+            .select()
+            .from(userTable)
+            .where(eq(userTable.id, decoded.playerId))
+            .limit(1);
 
-        const tokens = generateTokens({
-            playerId: player.id,
-        });
+        if (users.length === 0) {
+            return Response.json({
+                success: false,
+                message: 'Player not found',
+            }, { status: 401 });
+        }
 
-        res.cookie('refreshToken', tokens.refreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
-            maxAge: 7 * dayInMS,
-        });
+        const user = users[0];
+        const tokens = generateTokens({ playerId: user.id });
 
-        res.status(200).json({
+        const headers = new Headers();
+        const isProd = process.env.NODE_ENV === 'production';
+        
+        headers.append('Set-Cookie', 
+            `refreshToken=${tokens.refreshToken}; HttpOnly; ${isProd ? 'Secure;' : ''} SameSite=Strict; Max-Age=${(7 * dayInMS) / 1000}; Path=/`
+        );
+
+        return Response.json({
             success: true,
             message: 'Tokens refreshed successfully',
             accessToken: tokens.accessToken,
+        }, { 
+            status: 200, 
+            headers 
         });
+
     } catch (error) {
         console.error('Refresh Token Error:', error);
-        res.status(500).json({
+        return Response.json({
             success: false,
             message: 'Internal server error',
-        });
+        }, { status: 500 });
     }
 };

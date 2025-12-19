@@ -1,5 +1,5 @@
+import { inspect } from 'bun';
 import { sql } from 'drizzle-orm';
-import { inspect } from 'util';
 import { situationsTable } from '../schemas';
 
 export const appDatabase = {
@@ -4130,7 +4130,6 @@ export const appDatabase = {
     },
 };
 
-// FIXME: переделать на drizzle-seed (похуй)
 export const seedSituations = async (db) => {
     try {
         const countResult = await db

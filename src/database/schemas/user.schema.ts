@@ -1,11 +1,11 @@
 import { relations } from 'drizzle-orm';
-import { integer, pgTable, uniqueIndex, varchar } from 'drizzle-orm/pg-core';
+import { integer, pgTable, uniqueIndex, uuid, varchar } from 'drizzle-orm/pg-core';
 import { gamesTable } from './game.schema';
 
-export const playersTable = pgTable(
-    'players',
+export const userTable = pgTable(
+    'user',
     {
-        id: integer().primaryKey().generatedAlwaysAsIdentity(),
+        id: uuid().defaultRandom(),
         nickname: varchar().notNull(),
         age: integer(),
         email: varchar().notNull(),
@@ -16,9 +16,9 @@ export const playersTable = pgTable(
 );
 
 
-export const playersRelations = relations(playersTable, ({ one }) => ({
+export const userRelations = relations(userTable, ({ one }) => ({
 	game: one(gamesTable, {
-		fields: [playersTable.gameId],
+		fields: [userTable.gameId],
 		references: [gamesTable.id],
 	}),
 }));

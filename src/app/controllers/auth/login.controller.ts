@@ -1,7 +1,6 @@
 import { eq } from 'drizzle-orm';
-import { Request, Response } from 'express';
 import { db } from 'src/database/data-source';
-import { playersTable } from 'src/database/schemas';
+import { userTable } from 'src/database/schemas';
 import { dayInMS } from 'src/shared';
 import { generateTokens } from 'src/shared/utils/jwt';
 import { z } from 'zod';
@@ -11,71 +10,68 @@ const loginSchema = z.object({
     password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
-export const loginUser = async (req: Request, res: Response): Promise<void> => {
-    const parseResult = loginSchema.safeParse(req.body);
-
-    if (!parseResult.success) {
-        res.status(400).json({
-            success: false,
-            message: 'Validation failed',
-            errors: z.treeifyError(parseResult.error).errors,
-        });
-        return;
-    }
-
+export const loginUser = async (req: Request): Promise<Response> => {
     try {
-        const { email, password } = parseResult.data;
+        const body = await req.json();
+        const parseResult = loginSchema.safeParse(body);
 
-        const players = await db
-            .select()
-            .from(playersTable)
-            .where(eq(playersTable.email, email))
-            .limit(1);
-
-        if (players.length === 0) {
-            res.status(401).json({
+        if (!parseResult.success) {
+            return Response.json({
                 success: false,
-                message: 'Invalid email or password',
-            });
-            return;
+                message: 'Validation failed',
+                errors: z.treeifyError(parseResult.error),
+            }, { status: 400 });
         }
 
-        const player = players[0];
+        const { email, password } = parseResult.data;
 
-        const isPasswordValid = await Bun.password.verify(password, player.password, 'bcrypt');
+        const users = await db
+            .select()
+            .from(userTable)
+            .where(eq(userTable.email, email))
+            .limit(1);
 
-        if (!isPasswordValid) {
-            res.status(401).json({
+        if (users.length === 0) {
+            return Response.json({
                 success: false,
                 message: 'Invalid email or password',
-            });
-            return;
+            }, { status: 401 });
+        }
+
+        const user = users[0];
+        const isPasswordValid = await Bun.password.verify(password, user.password, 'bcrypt');
+
+        if (!isPasswordValid) {
+            return Response.json({
+                success: false,
+                message: 'Invalid email or password',
+            }, { status: 401 });
         }
 
         const tokens = generateTokens({
-            playerId: player.id,
+            playerId: user.id,
         });
 
-        const { password: _, ...playerWithoutSensitiveData } = player;
+        const { password: _, ...playerWithoutSensitiveData } = user;
 
-        res.cookie('refreshToken', tokens.refreshToken, {
-            httpOnly: true,
-            secure: true,
-            sameSite: 'strict',
-            maxAge: dayInMS,
-        });
+        const headers = new Headers();
+        headers.append('Set-Cookie', `refreshToken=${tokens.refreshToken}; HttpOnly; Secure; SameSite=Strict; Max-Age=${dayInMS / 1000}`);
 
-        res.status(200).json({
+        return Response.json({
             success: true,
             message: 'Login successful',
             user: playerWithoutSensitiveData,
             accessToken: tokens.accessToken,
+        }, { 
+            status: 200,
+            headers 
         });
+
     } catch (error) {
         console.error('Login Error:', error);
-        res.status(500).json({
+        return Response.json({
             success: false,
             message: 'Internal server error during login',
-        });
+        }, { status: 500 });
     }
 };

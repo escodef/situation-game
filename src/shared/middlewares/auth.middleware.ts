@@ -1,25 +1,37 @@
-import { Response } from 'express';
-import { verify } from 'jsonwebtoken';
-import { UserRequest } from '../interfaces';
+import { verifyAccessToken } from 'src/shared/utils/jwt';
+import { TokenPayload } from '../interfaces';
 
-export const authenticate = (req: UserRequest, res: Response, next) => {
-    const authHeader = req.headers.authorization;
+export const authenticate = async (req: Request): Promise<{ error: Response; user: TokenPayload }> => {
+    const authHeader = req.headers.get('authorization');
     const token = authHeader?.split(' ')[1];
 
     if (!token) {
-        return res.status(401).json({
-            message: 'Unauthorized. No token provided.',
-        });
+        return {
+            error: Response.json(
+                {
+                    success: false,
+                    message: 'Unauthorized. No token provided.',
+                },
+                { status: 401 },
+            ),
+            user: null,
+        };
     }
-    try {
-        const decoded = verify(token, process.env.JWT_ACCESS_SECRET);
 
-        req.player = decoded;
+    const decoded = verifyAccessToken(token);
 
-        next();
-    } catch {
-        return res.status(403).json({
-            message: 'Forbidden - Invalid or expired token',
-        });
+    if (!decoded) {
+        return {
+            error: Response.json(
+                {
+                    success: false,
+                    message: 'Forbidden - Invalid or expired token',
+                },
+                { status: 403 },
+            ),
+            user: null,
+        };
     }
+
+    return { error: null, user: decoded };
 };
