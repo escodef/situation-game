@@ -1,12 +1,16 @@
 import { ServerWebSocket } from 'bun';
 
+enum Events {
+    JOIN_ROOM = 'join_room',
+    PLAY_CARD = 'play_card',
+}
 export interface SocketData {
     userId: number;
     token: string;
 }
 
 export interface SocketMessage<T = any> {
-    event: string;
+    event: Events;
     data: T;
 }
 

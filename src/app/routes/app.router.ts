@@ -25,6 +25,7 @@ export const handleRoutes = async (req: Request): Promise<Response> => {
     if (path.startsWith('/game')) {
         const { error, user } = await authenticate(req);
 
+        if (error) return error;
 
         if (req.method === 'GET') {
             return await getGame(req);
@@ -33,9 +34,6 @@ export const handleRoutes = async (req: Request): Promise<Response> => {
         if (req.method === 'POST') {
             return await createGame(req, user);
         }
-
-
-        if (error) return error;
     }
 
     return new Response('Not Found', { status: 404 });

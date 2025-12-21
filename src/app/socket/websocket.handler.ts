@@ -1,7 +1,6 @@
 import { ServerWebSocket } from 'bun';
 import { SocketData, SocketMessage } from './interfaces/message.interface';
-import { processJoinRoom } from './processors/join-room.processor';
-import { processPlayCard } from './processors/play-card.processor';
+import { processJoinRoom, processPlayCard } from './processors';
 
 export const handleMessage = async (
     ws: ServerWebSocket<SocketData>, 
