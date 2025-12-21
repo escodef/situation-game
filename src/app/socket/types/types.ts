@@ -22,6 +22,7 @@ export type TSocketOutcomeMessage<T = unknown> =
           data: T;
       }
     | {
+          event: ESocketOutcomeEvent;
           errors: string[];
       };
 
