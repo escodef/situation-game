@@ -7,7 +7,7 @@ const getGameDto = z.object({
     id: z.uuid(),
 });
 
-export const getGame = async (req: Request): Promise<Response> => {
+export const getGames = async (req: Request): Promise<Response> => {
     try {
         const { searchParams } = new URL(req.url);
         const gameId = searchParams.get('id');

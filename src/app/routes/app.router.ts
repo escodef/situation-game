@@ -1,9 +1,7 @@
 import { authenticate } from 'src/shared/middlewares';
-import { loginUser } from '../controllers/auth/login.controller';
-import { refreshTokenController } from '../controllers/auth/refresh.controller';
-import { registerUser } from '../controllers/auth/register.controller';
-import { createGame } from '../controllers/game/create.controller';
-import { getGame } from '../controllers/game/get.controller';
+import { loginUser, refreshTokenController, registerUser } from '../controllers/auth';
+import { createGame, getGames } from '../controllers/game';
+import { getProfile } from '../controllers/user';
 
 export const handleRoutes = async (req: Request): Promise<Response> => {
     const url = new URL(req.url);
@@ -20,6 +18,7 @@ export const handleRoutes = async (req: Request): Promise<Response> => {
         if (path === '/auth/register' && method === 'POST') {
             return await registerUser(req);
         }
+        return new Response('Not Found', { status: 404 });
     }
 
     if (path.startsWith('/game')) {
@@ -28,12 +27,24 @@ export const handleRoutes = async (req: Request): Promise<Response> => {
         if (error) return error;
 
         if (req.method === 'GET') {
-            return await getGame(req);
+            return await getGames(req);
         }
 
         if (req.method === 'POST') {
             return await createGame(req, user);
         }
+        return new Response('Not Found', { status: 404 });
+    }
+
+    if (path.startsWith('/user')) {
+        const { error, user } = await authenticate(req);
+
+        if (error) return error;
+
+        if (req.method === 'GET') {
+            return await getProfile(req, user);
+        }
+        return new Response('Not Found', { status: 404 });
     }
 
     return new Response('Not Found', { status: 404 });
