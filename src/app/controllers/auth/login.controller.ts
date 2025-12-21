@@ -7,7 +7,7 @@ import { z } from 'zod';
 
 const loginSchema = z.object({
     email: z.email('Invalid email'),
-    password: z.string().min(6, 'Password must be at least 6 characters'),
+    password: z.string().min(8, 'Password must be at least 8 characters'),
 });
 
 export const loginUser = async (req: Request): Promise<Response> => {
@@ -62,10 +62,10 @@ export const loginUser = async (req: Request): Promise<Response> => {
         }
 
         const tokens = generateTokens({
-            playerId: user.id,
+            userId: user.id,
         });
 
-        const { password: _, ...playerWithoutSensitiveData } = user;
+        const { password: _, ...userWithoutSensitiveData } = user;
 
         const headers = new Headers();
         headers.append(
@@ -79,7 +79,7 @@ export const loginUser = async (req: Request): Promise<Response> => {
             {
                 success: true,
                 message: 'Login successful',
-                user: playerWithoutSensitiveData,
+                user: userWithoutSensitiveData,
                 accessToken: tokens.accessToken,
             },
             {

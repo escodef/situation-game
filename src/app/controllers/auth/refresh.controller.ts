@@ -40,7 +40,7 @@ export const refreshTokenController = async (
         const users = await db
             .select()
             .from(userTable)
-            .where(eq(userTable.id, decoded.playerId))
+            .where(eq(userTable.id, decoded.userId))
             .limit(1);
 
         if (users.length === 0) {
@@ -54,7 +54,7 @@ export const refreshTokenController = async (
         }
 
         const user = users[0];
-        const tokens = generateTokens({ playerId: user.id });
+        const tokens = generateTokens({ userId: user.id });
 
         const headers = new Headers();
         const isProd = process.env.NODE_ENV === 'production';
