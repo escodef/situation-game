@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm';
-import { integer, pgEnum, pgTable, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { boolean, integer, pgEnum, pgTable, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { userTable } from './user.schema';
 
 export const statusEnum = pgEnum('status', ['waiting', 'in_progress', 'finished']);
@@ -10,6 +10,7 @@ export const gamesTable = pgTable('games', {
     status: statusEnum().default('waiting'),
     maxPlayers: integer('max_players'),
     dateCreated: timestamp('date_created').defaultNow(),
+    isOpen: boolean('is_open').default(false),
 });
 
 export const gamesRelations = relations(gamesTable, ({ many }) => ({
