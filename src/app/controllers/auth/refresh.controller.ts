@@ -4,7 +4,7 @@ import { userTable } from 'src/database/schemas';
 import { dayInMS } from 'src/shared';
 import { generateTokens, verifyRefreshToken } from 'src/shared/utils/jwt';
 
-export const refreshTokenController = async (req: Request): Promise<Response> => {
+export const refreshToken = async (req: Request): Promise<Response> => {
     try {
         const cookieHeader = req.headers.get('cookie') || '';
         const cookies = Object.fromEntries(
@@ -22,7 +22,7 @@ export const refreshTokenController = async (req: Request): Promise<Response> =>
 
         const decoded = verifyRefreshToken(refreshToken);
         
-        if (!decoded || !decoded.playerId) {
+        if (!decoded || !decoded.userId) {
             return Response.json({
                 success: false,
                 message: 'Invalid or expired refresh token',
@@ -32,18 +32,18 @@ export const refreshTokenController = async (req: Request): Promise<Response> =>
         const users = await db
             .select()
             .from(userTable)
-            .where(eq(userTable.id, decoded.playerId))
+            .where(eq(userTable.id, decoded.userId))
             .limit(1);
 
         if (users.length === 0) {
             return Response.json({
                 success: false,
-                message: 'Player not found',
+                message: 'User not found',
             }, { status: 401 });
         }
 
         const user = users[0];
-        const tokens = generateTokens({ playerId: user.id });
+        const tokens = generateTokens({ userId: user.id });
 
         const headers = new Headers();
         const isProd = process.env.NODE_ENV === 'production';

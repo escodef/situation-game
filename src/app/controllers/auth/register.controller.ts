@@ -4,8 +4,8 @@ import { userTable } from 'src/database/schemas';
 import { z } from 'zod';
 
 const registerSchema = z.object({
-    password: z.string().min(6, 'Password must be at least 6 characters'),
-    nickname: z.string().min(1, 'Name is required'),
+    password: z.string().min(8, 'Password must be at least 8 characters'),
+    nickname: z.string().min(4, 'Name is required'),
     email: z.email('Invalid email'),
 });
 

@@ -1,6 +1,7 @@
 import { db } from 'src/database/data-source';
 import { gamesTable } from 'src/database/schemas';
 import { TokenPayload } from 'src/shared';
+import { generateCode } from 'src/shared/utils/code';
 import z from 'zod';
 
 const createDto = z.object({
@@ -22,16 +23,19 @@ export const createGame = async (req: Request, user: TokenPayload): Promise<Resp
             { status: 422 },
         );
     }
+    const code = generateCode();
 
     await db.insert(gamesTable).values({
         maxPlayers: parseResult.data.maxPlayers,
-        ownerId: user.userId
+        ownerId: user.userId,
+        code,
     });
 
     return Response.json(
         {
             success: true,
-            message: 'Game createds successfully',
+            message: 'Game created successfully',
+            code,
         },
         { status: 201 },
     );
