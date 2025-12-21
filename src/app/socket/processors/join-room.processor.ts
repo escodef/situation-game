@@ -1,14 +1,14 @@
 import { ServerWebSocket } from 'bun';
-import { SocketData } from '../interfaces/message.interface';
+import { ESocketOutcomeEvent, ISocketData } from '../types/types';
 import { websocketInstance } from '../websocket.manager';
 
 export const processJoinRoom = async (
-    ws: ServerWebSocket<SocketData>,
+    ws: ServerWebSocket<ISocketData>,
     data: { roomId: string }
 ) => {
     websocketInstance.joinRoom(ws.data.userId, data.roomId);
     websocketInstance.sendToRoom(data.roomId, {
-        event: 'user_joined',
+        event: ESocketOutcomeEvent.JOINED_TO_ROOM,
         data: { userId: ws.data.userId },
     });
 };

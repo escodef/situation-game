@@ -1,7 +1,7 @@
 import Bun from 'bun';
 import { verifyAccessToken } from 'src/shared/utils/jwt';
 import { handleRoutes } from './routes';
-import { SocketData } from './socket/interfaces/message.interface';
+import { ISocketData } from './socket/types/types';
 import { handleMessage } from './socket/websocket.handler';
 import { WebsocketManager } from './socket/websocket.manager';
 
@@ -9,7 +9,7 @@ export const createApp = () => {
     const wsManager = WebsocketManager.getInstance();
     const PORT = Bun.env.PORT || 3000;
 
-    const server = Bun.serve<SocketData>({
+    const server = Bun.serve<ISocketData>({
         port: PORT,
 
         async fetch(req, server) {
@@ -25,7 +25,9 @@ export const createApp = () => {
                 const payload = verifyAccessToken(token);
 
                 if (!payload) {
-                    return new Response('Invalid or expired token', { status: 403 });
+                    return new Response('Invalid or expired token', {
+                        status: 403,
+                    });
                 }
 
                 const success = server.upgrade(req, {
@@ -36,7 +38,9 @@ export const createApp = () => {
                 });
 
                 if (success) return undefined;
-                return new Response('WebSocket upgrade failed', { status: 500 });
+                return new Response('WebSocket upgrade failed', {
+                    status: 500,
+                });
             }
 
             return await handleRoutes(req);
