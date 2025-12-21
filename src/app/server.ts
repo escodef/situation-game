@@ -1,5 +1,5 @@
 import Bun from 'bun';
-import { verifyAccessToken } from 'src/shared/utils/jwt';
+import { verifyAccessToken } from 'src/shared/utils/jwt.util';
 import { handleRoutes } from './routes';
 import { ISocketData } from './socket/types/types';
 import { handleMessage } from './socket/websocket.handler';

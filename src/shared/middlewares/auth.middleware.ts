@@ -1,7 +1,9 @@
-import { verifyAccessToken } from 'src/shared/utils/jwt';
+import { verifyAccessToken } from 'src/shared/utils/jwt.util';
 import { TokenPayload } from '../interfaces';
 
-export const authenticate = async (req: Request): Promise<{ error: Response; user: TokenPayload }> => {
+export const authenticate = async (
+    req: Request
+): Promise<{ error: Response; user: TokenPayload }> => {
     const authHeader = req.headers.get('authorization');
     const token = authHeader?.split(' ')[1];
 
@@ -12,7 +14,7 @@ export const authenticate = async (req: Request): Promise<{ error: Response; use
                     success: false,
                     message: 'Unauthorized. No token provided.',
                 },
-                { status: 401 },
+                { status: 401 }
             ),
             user: null,
         };
@@ -27,7 +29,7 @@ export const authenticate = async (req: Request): Promise<{ error: Response; use
                     success: false,
                     message: 'Forbidden - Invalid or expired token',
                 },
-                { status: 403 },
+                { status: 403 }
             ),
             user: null,
         };

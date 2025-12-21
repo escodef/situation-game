@@ -1,38 +1,41 @@
 import { db } from 'src/database/data-source';
 import { gamesTable } from 'src/database/schemas';
 import { TokenPayload } from 'src/shared';
-import z from 'zod';
+import { EGameStatus } from 'src/shared/enums';
+import { generateRandomString } from 'src/shared/utils';
 
-const createDto = z.object({
-    maxPlayers: z.int().min(2, 'Must be at least 2').max(8, 'Value too high - 8 players max'),
-});
+export const createGame = async (
+    req: Request,
+    user: TokenPayload
+): Promise<Response> => {
+    try {
+        const body = await req.json();
+        const code = generateRandomString();
 
-export const createGame = async (req: Request, user: TokenPayload): Promise<Response> => {
-    const body = await req.json();
+        const [newGame] = await db
+            .insert(gamesTable)
+            .values({
+                code: code,
+                ownerId: user.playerId,
+                maxPlayers: body.maxPlayers || 4,
+                status: EGameStatus.WAITING,
+            })
+            .returning();
 
-    const parseResult = createDto.safeParse(body);
-
-    if (!parseResult.success) {
         return Response.json(
             {
-                success: false,
-                message: 'Validation failed',
-                errors: z.treeifyError(parseResult.error),
+                success: true,
+                data: {
+                    gameId: newGame.id,
+                    code: newGame.code,
+                },
             },
-            { status: 422 },
+            { status: 201 }
+        );
+    } catch (error) {
+        return Response.json(
+            { success: false, message: 'Server error' },
+            { status: 500 }
         );
     }
-
-    await db.insert(gamesTable).values({
-        maxPlayers: parseResult.data.maxPlayers,
-        ownerId: user.userId
-    });
-
-    return Response.json(
-        {
-            success: true,
-            message: 'Game createds successfully',
-        },
-        { status: 201 },
-    );
 };
