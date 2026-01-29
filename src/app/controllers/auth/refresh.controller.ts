@@ -1,90 +1,72 @@
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { db } from 'src/database/data-source';
-import { userTable } from 'src/database/schemas';
+import { refreshTokensTable } from 'src/database/schemas';
 import { dayInMS } from 'src/shared';
 import { generateTokens, verifyRefreshToken } from 'src/shared/utils/jwt.util';
 
-export const refreshTokenController = async (
-    req: Request
-): Promise<Response> => {
+export const refreshTokenController = async (req: Request): Promise<Response> => {
     try {
         const cookieHeader = req.headers.get('cookie') || '';
-        const cookies = Object.fromEntries(
-            cookieHeader.split('; ').map((c) => c.split('='))
-        );
+        const cookies = Object.fromEntries(cookieHeader.split('; ').map((c) => c.split('=')));
+        const oldRefreshToken = cookies['refreshToken'];
 
-        const refreshToken = cookies['refreshToken'];
-
-        if (!refreshToken) {
-            return Response.json(
-                {
-                    success: false,
-                    message: 'Refresh token not found',
-                },
-                { status: 401 }
-            );
+        if (!oldRefreshToken) {
+            return Response.json({ success: false, message: 'No token' }, { status: 401 });
         }
 
-        const decoded = verifyRefreshToken(refreshToken);
-
-        if (!decoded || !decoded.playerId) {
-            return Response.json(
-                {
-                    success: false,
-                    message: 'Invalid or expired refresh token',
-                },
-                { status: 401 }
-            );
+        const decoded = verifyRefreshToken(oldRefreshToken);
+        if (!decoded || !decoded.userId) {
+            return Response.json({ success: false, message: 'Invalid token' }, { status: 401 });
         }
 
-        const users = await db
-            .select()
-            .from(userTable)
-            .where(eq(userTable.id, decoded.userId))
-            .limit(1);
-
-        if (users.length === 0) {
-            return Response.json(
-                {
-                    success: false,
-                    message: 'Player not found',
+        const storedSession = await db.query.refreshTokensTable.findFirst({
+            where: and(
+                eq(refreshTokensTable.token, oldRefreshToken),
+                eq(refreshTokensTable.userId, decoded.userId),
+            ),
+            with: {
+                user: {
+                    with: {
+                        roles: { with: { role: true } },
+                    },
                 },
-                { status: 401 }
-            );
+            },
+        });
+
+        if (!storedSession || new Date() > storedSession.expiresAt) {
+            return Response.json({ success: false, message: 'Session not found' }, { status: 401 });
         }
 
-        const user = users[0];
-        const tokens = generateTokens({ userId: user.id });
+        await db.delete(refreshTokensTable).where(eq(refreshTokensTable.id, storedSession.id));
 
-        const headers = new Headers();
+        const roleNames = storedSession.user.roles.map((r) => r.role.name);
+        const tokens = generateTokens({
+            userId: storedSession.user.id,
+            roles: roleNames,
+        });
+
+        await db.insert(refreshTokensTable).values({
+            userId: storedSession.user.id,
+            token: tokens.refreshToken,
+            expiresAt: new Date(Date.now() + 7 * dayInMS),
+        });
+
         const isProd = process.env.NODE_ENV === 'production';
-
+        const headers = new Headers();
         headers.append(
             'Set-Cookie',
-            `refreshToken=${tokens.refreshToken}; HttpOnly; ${
-                isProd ? 'Secure;' : ''
-            } SameSite=Strict; Max-Age=${(7 * dayInMS) / 1000}; Path=/`
+            `refreshToken=${tokens.refreshToken}; HttpOnly; ${isProd ? 'Secure;' : ''} SameSite=Strict; Max-Age=${(7 * dayInMS) / 1000}; Path=/`,
         );
 
         return Response.json(
             {
                 success: true,
-                message: 'Tokens refreshed successfully',
                 accessToken: tokens.accessToken,
             },
-            {
-                status: 200,
-                headers,
-            }
+            { status: 200, headers },
         );
     } catch (error) {
-        console.error('Refresh Token Error:', error);
-        return Response.json(
-            {
-                success: false,
-                message: 'Internal server error',
-            },
-            { status: 500 }
-        );
+        console.error('Refresh Error:', error);
+        return Response.json({ success: false, message: 'Internal error' }, { status: 500 });
     }
 };

@@ -1,12 +1,12 @@
 import { eq } from 'drizzle-orm';
 import { db } from 'src/database/data-source';
-import { userTable } from 'src/database/schemas';
+import { refreshTokensTable, userTable } from 'src/database/schemas';
 import { dayInMS } from 'src/shared';
 import { generateTokens } from 'src/shared/utils/jwt.util';
 import { z } from 'zod';
 
 const loginSchema = z.object({
-    email: z.email('Invalid email'),
+    email: z.email('Invalid email').trim().toLowerCase(),
     password: z.string().min(8, 'Password must be at least 8 characters'),
 });
 
@@ -17,84 +17,71 @@ export const loginUser = async (req: Request): Promise<Response> => {
 
         if (!parseResult.success) {
             return Response.json(
-                {
-                    success: false,
-                    message: 'Validation failed',
-                    errors: z.treeifyError(parseResult.error),
-                },
-                { status: 400 }
+                { success: false, errors: parseResult.error.flatten() },
+                { status: 400 },
             );
         }
 
         const { email, password } = parseResult.data;
 
-        const users = await db
-            .select()
-            .from(userTable)
-            .where(eq(userTable.email, email))
-            .limit(1);
-
-        if (users.length === 0) {
-            return Response.json(
-                {
-                    success: false,
-                    message: 'Invalid email or password',
+        const user = await db.query.userTable.findFirst({
+            where: eq(userTable.email, email),
+            with: {
+                roles: {
+                    with: {
+                        role: true,
+                    },
                 },
-                { status: 401 }
+            },
+        });
+
+        if (!user || !user.password) {
+            return Response.json(
+                { success: false, message: 'Invalid credentials' },
+                { status: 401 },
             );
         }
 
-        const user = users[0];
-        const isPasswordValid = await Bun.password.verify(
-            password,
-            user.password,
-            'bcrypt'
-        );
-
+        const isPasswordValid = await Bun.password.verify(password, user.password);
         if (!isPasswordValid) {
             return Response.json(
-                {
-                    success: false,
-                    message: 'Invalid email or password',
-                },
-                { status: 401 }
+                { success: false, message: 'Invalid credentials' },
+                { status: 401 },
             );
         }
+
+        const roleNames = user.roles.map((r) => r.role.name);
 
         const tokens = generateTokens({
             userId: user.id,
+            roles: roleNames,
         });
 
-        const { password: _, ...userWithoutSensitiveData } = user;
+        await db.insert(refreshTokensTable).values({
+            userId: user.id,
+            token: tokens.refreshToken,
+            expiresAt: new Date(Date.now() + dayInMS * 30),
+        });
 
-        const headers = new Headers();
-        headers.append(
-            'Set-Cookie',
-            `refreshToken=${
-                tokens.refreshToken
-            }; HttpOnly; Secure; SameSite=Strict; Max-Age=${dayInMS / 1000}`
-        );
+        const { password: _, roles: __, ...userPublicData } = user;
 
-        return Response.json(
+        const response = Response.json(
             {
                 success: true,
-                message: 'Login successful',
-                user: userWithoutSensitiveData,
+                user: { ...userPublicData, roles: roleNames },
                 accessToken: tokens.accessToken,
             },
-            {
-                status: 200,
-                headers,
-            }
+            { status: 200 },
         );
+
+        response.headers.append(
+            'Set-Cookie',
+            `refreshToken=${tokens.refreshToken}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=${(dayInMS * 30) / 1000}`,
+        );
+
+        return response;
     } catch (error) {
         console.error('Login Error:', error);
-        return Response.json(
-            {
-                success: false,
-                message: 'Internal server error during login',
-            },
-            { status: 500 }
-        );
+        return Response.json({ success: false, message: 'Internal error' }, { status: 500 });
     }
 };
