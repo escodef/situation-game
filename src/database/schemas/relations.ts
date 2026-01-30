@@ -24,7 +24,7 @@ export const userRelations = relations(userTable, ({ many, one }) => ({
     refreshTokens: many(refreshTokensTable),
 }));
 
-export const usersToRolesRelations = relations(userRolesTable, ({ one }) => ({
+export const userRolesRelations = relations(userRolesTable, ({ one }) => ({
     user: one(userTable, { fields: [userRolesTable.userId], references: [userTable.id] }),
     role: one(rolesTable, { fields: [userRolesTable.roleId], references: [rolesTable.id] }),
 }));

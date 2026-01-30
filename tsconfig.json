@@ -1,12 +1,12 @@
 {
     "compilerOptions": {
-        "module": "commonjs",
+        "module": "esnext",
         "declaration": true,
         "removeComments": true,
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
         "allowSyntheticDefaultImports": true,
-        "target": "ES2021",
+        "target": "esnext",
         "sourceMap": true,
         "outDir": "./dist",
         "baseUrl": "./",
@@ -19,6 +19,10 @@
         "strict": true,
         "noFallthroughCasesInSwitch": true,
         "noUncheckedIndexedAccess": true,
-        "noImplicitOverride": true
+        "noImplicitOverride": true,
+        "moduleResolution": "bundler",
+        "types": ["bun-types"],
+        "allowImportingTsExtensions": true,
+        "noEmit": true
     }
 }
