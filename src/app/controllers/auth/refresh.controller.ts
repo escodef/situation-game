@@ -27,12 +27,24 @@ export const refreshTokenController = async (req: Request): Promise<Response> =>
             with: {
                 user: {
                     with: {
-                        roles: { with: { role: true } },
+                        roles: {
+                            with: {
+                                role: true,
+                            },
+                        },
                     },
                 },
             },
         });
+        const step1 = await db.query.refreshTokensTable.findFirst({});
 
+        const step2 = await db.query.refreshTokensTable.findFirst({
+            with: { user: true },
+        });
+
+        const step3 = await db.query.refreshTokensTable.findFirst({
+            with: { user: { with: { roles: true } } },
+        });
         if (!storedSession || new Date() > storedSession.expiresAt) {
             return Response.json({ success: false, message: 'Session not found' }, { status: 401 });
         }

@@ -1,4 +1,3 @@
-import { relations } from 'drizzle-orm';
 import {
     integer,
     pgEnum,
@@ -28,24 +27,11 @@ export const userTable = pgTable(
     (table) => [uniqueIndex('email_idx').on(table.email)],
 );
 
-export const usersToRolesTable = pgTable(
-    'users_to_roles',
+export const userRolesTable = pgTable(
+    'user_roles',
     {
         userId: uuid('user_id').references(() => userTable.id, { onDelete: 'cascade' }),
         roleId: integer('role_id').references(() => rolesTable.id, { onDelete: 'cascade' }),
     },
     (table) => [primaryKey({ columns: [table.userId, table.roleId] })],
 );
-
-export const userRelations = relations(userTable, ({ many, one }) => ({
-    roles: many(usersToRolesTable),
-    game: one(gamesTable, {
-        fields: [userTable.gameId],
-        references: [gamesTable.id],
-    }),
-}));
-
-export const usersToRolesRelations = relations(usersToRolesTable, ({ one }) => ({
-    user: one(userTable, { fields: [usersToRolesTable.userId], references: [userTable.id] }),
-    role: one(rolesTable, { fields: [usersToRolesTable.roleId], references: [rolesTable.id] }),
-}));
