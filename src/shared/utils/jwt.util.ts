@@ -1,4 +1,3 @@
-import { inspect } from 'bun';
 import { sign, verify } from 'jsonwebtoken';
 import { TokenPayload } from '../interfaces';
 
@@ -17,10 +16,7 @@ export const generateTokens = (payload: TokenPayload) => {
 export const verifyAccessToken = (token: string) => {
     try {
         return verify(token, process.env.JWT_ACCESS_SECRET) as TokenPayload;
-    } catch (error) {
-        console.error(error);
-        console.error('inspect()');
-        console.error(inspect(error));
+    } catch {
         return null;
     }
 };
@@ -28,10 +24,7 @@ export const verifyAccessToken = (token: string) => {
 export const verifyRefreshToken = (token: string) => {
     try {
         return verify(token, process.env.JWT_REFRESH_SECRET) as TokenPayload;
-    } catch (error) {
-        console.error(error);
-        console.error('inspect()');
-        console.error(inspect(error));
+    } catch {
         return null;
     }
 };

@@ -1,5 +1,5 @@
 export enum EGameStatus {
-    WAITING = 'waiting',
-    PROCESS = 'in_process',
-    FINISHED = 'finished',
+    WAITING = 'WAITING',
+    STARTED = 'STARTED',
+    FINISHED = 'FINISHED',
 }

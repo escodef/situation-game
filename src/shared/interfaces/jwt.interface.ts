@@ -1,5 +1,6 @@
-import { JwtPayload } from "jsonwebtoken";
+import { EUserRole } from '../enums/role.enum';
 
-export interface TokenPayload extends JwtPayload {
-    userId?: string;
+export interface TokenPayload {
+    userId: string;
+    roles: EUserRole[];
 }

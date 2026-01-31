@@ -1,8 +1,6 @@
-import { inspect } from 'bun';
-import { sql } from 'drizzle-orm';
-import { situationsTable } from '../schemas';
+import { db } from '../data-source';
 
-export const appDatabase = {
+export const initSituations = {
     categories: {
         1: {
             id: 1,
@@ -4130,42 +4128,34 @@ export const appDatabase = {
     },
 };
 
-export const seedSituations = async (db) => {
+export const seedSituations = async () => {
     try {
-        const countResult = await db
-            .select({
-                count: sql<string>`count(*)`,
-            })
-            .from(situationsTable);
-
-        const isSituationsEmpty = countResult[0].count === '0';
-
-        if (!isSituationsEmpty) {
+        const { rows } = await db.query('SELECT COUNT(*) FROM "situations"');
+        if (parseInt(rows[0].count, 10) > 0) {
             return;
         }
 
-        const situationsToInsert: Array<{
-            category: string;
-            text: string;
-            isAdult: boolean;
-        }> = [];
+        const values: any[] = [];
+        const placeholders: string[] = [];
+        let counter = 1;
 
-        Object.values(appDatabase.categories).forEach((cat) => {
-            const categoryTitle = cat.title;
-
+        Object.values(initSituations.categories).forEach((cat) => {
             cat.situations.forEach((sit) => {
-                situationsToInsert.push({
-                    category: categoryTitle,
-                    text: sit.text,
-                    isAdult: sit.isAdult,
-                });
+                values.push(sit.text, sit.isAdult, cat.title);
+                placeholders.push(`($${counter++}, $${counter++}, $${counter++})`);
             });
         });
 
-        if (situationsToInsert.length > 0) {
-            await db.insert(situationsTable).values(situationsToInsert);
-        }
+        if (values.length === 0) return;
+
+        const sql = `
+            INSERT INTO "situations" (text, is_adult, category) 
+            VALUES ${placeholders.join(', ')}
+        `;
+
+        await db.query(sql, values);
+        console.log(`Successfully seeded ${placeholders.length} situations.`);
     } catch (error) {
-        console.error(inspect(error));
+        console.error('Seeding failed:', error);
     }
 };

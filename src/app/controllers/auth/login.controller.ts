@@ -1,8 +1,5 @@
-import { eq } from 'drizzle-orm';
-import { db } from 'src/database/data-source';
-import { refreshTokensTable, userTable } from 'src/database/schemas';
-import { dayInMS } from 'src/shared';
-import { generateTokens } from 'src/shared/utils/jwt.util';
+import { UserRepo } from 'src/database/repositories/user.repo';
+import { dayInMS, generateTokens } from 'src/shared';
 import { z } from 'zod';
 
 const loginSchema = z.object({
@@ -17,25 +14,16 @@ export const loginUser = async (req: Request): Promise<Response> => {
 
         if (!parseResult.success) {
             return Response.json(
-                { success: false, errors: parseResult.error.flatten() },
+                { success: false, errors: z.treeifyError(parseResult.error) },
                 { status: 400 },
             );
         }
 
         const { email, password } = parseResult.data;
 
-        const user = await db.query.userTable.findFirst({
-            where: eq(userTable.email, email),
-            with: {
-                roles: {
-                    with: {
-                        role: true,
-                    },
-                },
-            },
-        });
+        const user = await UserRepo.findByEmailForAuth(email);
 
-        if (!user || !user.password) {
+        if (!user) {
             return Response.json(
                 { success: false, message: 'Invalid credentials' },
                 { status: 401 },
@@ -50,25 +38,17 @@ export const loginUser = async (req: Request): Promise<Response> => {
             );
         }
 
-        const roleNames = user.roles.map((r) => r.role.name);
-
         const tokens = generateTokens({
             userId: user.id,
-            roles: roleNames,
+            roles: user.roles,
         });
 
-        await db.insert(refreshTokensTable).values({
-            userId: user.id,
-            token: tokens.refreshToken,
-            expiresAt: new Date(Date.now() + dayInMS * 30),
-        });
-
-        const { password: _, roles: __, ...userPublicData } = user;
+        const { password: _, ...userPublicData } = user;
 
         const response = Response.json(
             {
                 success: true,
-                user: { ...userPublicData, roles: roleNames },
+                user: { ...userPublicData },
                 accessToken: tokens.accessToken,
             },
             { status: 200 },

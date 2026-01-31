@@ -1,5 +1,5 @@
 export enum EUserRole {
-    USER = 'waiting',
-    ADMIN = 'in_process',
-    MODERATOR = 'finished',
+    USER = 'USER',
+    ADMIN = 'ADMIN',
+    CREATOR = 'CREATOR', //ожидается, что сможет загружать свои паки мемов или ситуаций
 }
