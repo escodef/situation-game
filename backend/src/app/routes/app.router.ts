@@ -1,7 +1,9 @@
+import { inspect } from 'bun';
 import { authenticate } from 'src/shared/middlewares';
 import { loginUser, refreshToken, registerUser } from '../controllers/auth';
 import { createGame, getGames } from '../controllers/game';
-import { getProfile } from '../controllers/user';
+import { getUser } from '../controllers/user';
+import { getMe } from '../controllers/user/me.controller';
 
 export const handleRoutes = async (req: Request): Promise<Response> => {
     const url = new URL(req.url);
@@ -18,7 +20,6 @@ export const handleRoutes = async (req: Request): Promise<Response> => {
             if (path === '/auth/register' && method === 'POST') {
                 return await registerUser(req);
             }
-            return new Response('Not Found', { status: 404 });
         }
 
         if (path.startsWith('/game')) {
@@ -33,7 +34,6 @@ export const handleRoutes = async (req: Request): Promise<Response> => {
             if (req.method === 'POST') {
                 return await createGame(req, user);
             }
-            return new Response('Not Found', { status: 404 });
         }
 
         if (path.startsWith('/user')) {
@@ -42,14 +42,21 @@ export const handleRoutes = async (req: Request): Promise<Response> => {
             if (error) return error;
 
             if (req.method === 'GET') {
-                return await getProfile(req, user);
+                if (path === '/user/me') {
+                    return await getMe(req, user);
+                }
+
+                const match = path.match(/^\/user\/(\d+)$/);
+                if (match) {
+                    const userId = match[1];
+                    return await getUser(req, userId);
+                }
             }
-            return new Response('Not Found', { status: 404 });
         }
 
         return new Response('Not Found', { status: 404 });
     } catch (error) {
-        console.error('handleRoutes() Error:', error);
+        console.error('handleRoutes() Error:', inspect(error));
         return Response.json(
             {
                 success: false,

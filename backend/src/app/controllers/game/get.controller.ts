@@ -1,6 +1,5 @@
 import { count, eq } from 'drizzle-orm';
 import { db } from 'src/database/data-source';
-import { gamesTable } from 'src/database/schemas';
 import z from 'zod';
 
 const getGameDto = z.object({

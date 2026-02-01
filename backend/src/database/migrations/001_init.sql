@@ -6,12 +6,13 @@ CREATE TABLE "games" (
     "code" VARCHAR(6) NOT NULL UNIQUE,
     "owner_id" UUID,
     "status" "game_status" DEFAULT 'WAITING',
-    "max_players" INTEGER,
+    "rounds" INTEGER NOT NULL,
+    "max_players" INTEGER NOT NULL,
     "date_created" TIMESTAMP DEFAULT NOW(),
     "is_open" BOOLEAN DEFAULT FALSE
 );
 
-CREATE TABLE "user" (
+CREATE TABLE "users" (
     "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     "nickname" VARCHAR(255) NOT NULL,
     "roles" "user_role_enum"[] DEFAULT '{USER}',
@@ -23,7 +24,7 @@ CREATE TABLE "user" (
 
 CREATE UNIQUE INDEX "email_idx" ON "user" ("email");
 
-ALTER TABLE "games" ADD CONSTRAINT "games_owner_id_fkey" 
+ALTER TABLE "games" ADD CONSTRAINT "games_owner_id_fkey";
 FOREIGN KEY ("owner_id") REFERENCES "user"("id") ON DELETE SET NULL;
 
 CREATE TABLE "refresh_tokens" (
@@ -35,14 +36,45 @@ CREATE TABLE "refresh_tokens" (
     "created_at" TIMESTAMP DEFAULT NOW()
 );
 
-CREATE TABLE "memes" (
+CREATE TABLE "cards" (
     "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    "url" TEXT NOT NULL
+    "url" TEXT NOT NULL,
+    "card_pack_id" UUID REFERENCES card_packs(id)
+);
+
+CREATE TABLE "card_packs" (
+    "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    "name" VARCHAR(255) NOT NULL,
 );
 
 CREATE TABLE "situations" (
     "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     "text" VARCHAR(500) NOT NULL,
     "is_adult" BOOLEAN DEFAULT FALSE,
-    "category" VARCHAR(255) NOT NULL
+    "category" VARCHAR(255) NOT NULL,
+    "situation_pack_id" UUID REFERENCES situation_packs(id)
+
+);
+
+CREATE TABLE "situation_packs" (
+    "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    "name" VARCHAR(500) NOT NULL
+);
+
+
+CREATE TABLE "game_rounds" (
+    "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    "game_id" UUID REFERENCES games(id),
+    "round_number" INTEGER,
+    "situation_id" UUID REFERENCES situations(id),
+    "status" VARCHAR(20),
+    "ends_at" TIMESTAMP
+);
+
+CREATE TABLE "player_moves" (
+    "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    "round_id" UUID REFERENCES game_rounds(id),
+    "player_id" UUID REFERENCES users(id),
+    "card_id" UUID REFERENCES cards(id),
+    "voted_for_player_id" UUID REFERENCES users(id),
 );

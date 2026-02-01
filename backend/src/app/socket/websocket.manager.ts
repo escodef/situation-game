@@ -1,9 +1,5 @@
 import { ServerWebSocket } from 'bun';
-import {
-    ISocketData,
-    ISocketIncomeMessage,
-    TSocketOutcomeMessage,
-} from './types/types';
+import { ISocketData, ISocketIncomeMessage, TSocketOutcomeMessage } from './types/types';
 
 interface ActiveUser {
     userId: number;
@@ -23,10 +19,7 @@ export class WebsocketManager {
         return WebsocketManager.instance;
     }
 
-    public handleConnect(
-        ws: ServerWebSocket<ISocketData>,
-        userId: number
-    ): void {
+    public handleConnect(ws: ServerWebSocket<ISocketData>, userId: number): void {
         const activeUser: ActiveUser = { userId, ws };
         this.users.set(userId, activeUser);
         console.log(`User ${userId} connected.`);
@@ -81,7 +74,7 @@ export class WebsocketManager {
     public sendToRoom(
         roomId: string,
         message: TSocketOutcomeMessage,
-        excludeUserId?: number
+        excludeUserId?: number,
     ): void {
         const userIds = this.rooms.get(roomId);
         if (userIds) {
@@ -97,10 +90,7 @@ export class WebsocketManager {
         }
     }
 
-    public broadcast(
-        message: TSocketOutcomeMessage,
-        excludeUserId?: number
-    ): void {
+    public broadcast(message: TSocketOutcomeMessage, excludeUserId?: number): void {
         const messageString = JSON.stringify(message);
         this.users.forEach((user) => {
             if (user.userId !== excludeUserId) {

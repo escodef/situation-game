@@ -1,12 +1,8 @@
-import { eq } from 'drizzle-orm';
-import { db } from 'src/database/data-source';
-import { userTable } from 'src/database/schemas';
-import { TokenPayload } from 'src/shared';
+import { UserRepo } from 'src/database/repositories/user.repo';
 
-export const getProfile = async (_: Request, { userId }: TokenPayload): Promise<Response> => {
+export const getUser = async (_: Request, userId: string): Promise<Response> => {
     try {
-        const user = await db.select().from(userTable).where(eq(userTable.id, userId)).limit(1);
-
+        const user = await UserRepo.findById(userId);
         return Response.json(
             {
                 success: true,
