@@ -5,13 +5,21 @@
     </div>
 
     <div class="form-container">
-      <form class="login-form" @submit.prevent="handleLogin">
+      <form class="registration-form" @submit.prevent="handleLogin">
         <div class="input-group">
-          <label>Логин:</label>
+          <label>Введите почту:</label>
+          <input type="email" id="email" required />
+        </div>
+        <div class="input-group">
+          <label>Придумайте ник:</label>
           <input type="text" id="username" required />
         </div>
         <div class="input-group">
-          <label>Пароль:</label>
+          <label>Придумайте пароль:</label>
+          <input type="password" id="password" required />
+        </div>
+        <div class="input-group">
+          <label>Повторите пароль:</label>
           <input type="password" id="password" required />
         </div>
       </form>
@@ -19,7 +27,7 @@
 
     <div class="buttons-container">
       <div class="btn">
-        <button v-sound>Вход</button>
+        <button v-sound>Создать</button>
       </div>
 
       <div class="btn">
@@ -60,7 +68,6 @@ const handleLogin = () => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 130px;
   margin-bottom: 50px;
 }
 

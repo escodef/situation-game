@@ -13,6 +13,16 @@ const router = createRouter({
       name: "login",
       component: () => import("../pages/LoginPage.vue"),
     },
+    {
+      path: "/registration",
+      name: "registration",
+      component: () => import("../pages/RegistrationPage.vue"),
+    },
+    {
+      path: "/lobby",
+      name: "lobby",
+      component: () => import("../pages/Lobby.vue"),
+    },
   ],
 });
 

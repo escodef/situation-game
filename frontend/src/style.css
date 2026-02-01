@@ -6,6 +6,10 @@
 
   --text-color-main: #000;
   --text-color-secondary: #fff;
+  --text-color-player-host: #ffd737;
+  --box-bg-primary: #eeead8;
+  --box-bg-secondary: #0055ed;
+  --close-btn-bg-color: #db3c1e;
 }
 
 *,
@@ -57,7 +61,7 @@ button {
 h1 {
   color: var(--text-color-secondary);
   font-size: 40px;
-  -webkit-text-stroke: 3px #000;
+  -webkit-text-stroke: 4px #000;
   paint-order: stroke fill;
   text-shadow: 1px 4px 1px rgba(0, 0, 0, 1);
   cursor: default;
@@ -73,10 +77,19 @@ input {
 }
 
 input {
-    padding: 0 30px;
-    cursor: text;
+  cursor: text;
+  text-align: center;
 }
 
 button:hover {
   background-color: #7b9ad4;
+}
+
+label {
+  color: var(--text-color-secondary);
+  color: #fff;
+  font-size: 20px;
+  -webkit-text-stroke: 3px #000;
+  paint-order: stroke fill;
+  text-shadow: 1px 4px 1px rgba(0, 0, 0, 1);
 }
