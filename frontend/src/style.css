@@ -1,0 +1,82 @@
+@import url(./assets/fonts/fonts.css);
+
+:root {
+  font-family: "LCDCode", "Courier New", monospace;
+  text-rendering: optimizeLegibility;
+
+  --text-color-main: #000;
+  --text-color-secondary: #fff;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  font-family: "LCDCode", "Courier New";
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background-color: #1e1e1e;
+
+  background-image:
+    linear-gradient(rgba(30, 30, 30, 0.66), rgba(30, 30, 30, 0.66)),
+    url("/images/background-naruto.png");
+
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+input,
+textarea,
+button {
+  font-family: "LCDCode", "Courier New", monospace;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+
+  appearance: none;
+  border-radius: 0;
+}
+
+h1 {
+  color: var(--text-color-secondary);
+  font-size: 40px;
+  -webkit-text-stroke: 3px #000;
+  paint-order: stroke fill;
+  text-shadow: 1px 4px 1px rgba(0, 0, 0, 1);
+  cursor: default;
+  user-select: none;
+}
+
+button,
+input {
+  font-size: 16px;
+  background-color: #eeead8;
+  border: 5px solid #000;
+  cursor: pointer;
+}
+
+input {
+    padding: 0 30px;
+    cursor: text;
+}
+
+button:hover {
+  background-color: #7b9ad4;
+}
