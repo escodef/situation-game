@@ -9,6 +9,7 @@
   --text-color-player-host: #ffd737;
   --box-bg-primary: #eeead8;
   --box-bg-secondary: #0055ed;
+  --box-bg-shadow: #00215a;
   --close-btn-bg-color: #db3c1e;
 }
 
@@ -43,6 +44,42 @@ body {
   background-repeat: no-repeat;
 }
 
+body::after {
+  content: "";
+  position: fixed;
+
+  inset: -20%;
+
+  pointer-events: none;
+  z-index: 9999;
+
+  background-image: url("images/noise.jpg");
+  background-repeat: repeat;
+
+  opacity: 0.08;
+  mix-blend-mode: overlay;
+
+  animation: noiseMove 0.4s steps(1) infinite;
+}
+
+@keyframes noiseMove {
+  0% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(-10%, 10%);
+  }
+  50% {
+    transform: translate(10%, -10%);
+  }
+  75% {
+    transform: translate(-10%, -10%);
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
 input,
 textarea,
 button {
@@ -58,6 +95,16 @@ button {
   border-radius: 0;
 }
 
+span {
+  color: var(--text-color-main);
+  font-size: 20px;
+  user-select: none;
+
+  text-shadow:
+    1px 0 red,
+    -1px 0 cyan;
+}
+
 h1 {
   color: var(--text-color-secondary);
   font-size: 40px;
@@ -66,14 +113,22 @@ h1 {
   text-shadow: 1px 4px 1px rgba(0, 0, 0, 1);
   cursor: default;
   user-select: none;
+
+  text-shadow:
+    1px 0 red,
+    -1px 0 cyan;
 }
 
 button,
 input {
   font-size: 16px;
-  background-color: #eeead8;
+  background-color: var(--box-bg-primary);
   border: 5px solid #000;
   cursor: pointer;
+
+  text-shadow:
+    1px 0 red,
+    -1px 0 cyan;
 }
 
 input {
@@ -82,7 +137,7 @@ input {
 }
 
 button:hover {
-  background-color: #7b9ad4;
+  background-color: #d3cfbf;
 }
 
 label {
@@ -91,5 +146,16 @@ label {
   font-size: 20px;
   -webkit-text-stroke: 3px #000;
   paint-order: stroke fill;
-  text-shadow: 1px 4px 1px rgba(0, 0, 0, 1);
+  text-shadow:
+    1px 4px 1px rgba(0, 0, 0, 1),
+    1px 0 0 rgba(255, 0, 0, 0.8),
+    -1px 0 0 rgba(0, 255, 255, 0.8);
+}
+
+.nickname,
+.avatar-char,
+.avatar,
+.host-label {
+  cursor: pointer;
+  user-select: none;
 }
