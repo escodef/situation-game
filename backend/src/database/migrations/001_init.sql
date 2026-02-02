@@ -1,5 +1,5 @@
 CREATE TYPE "game_status" AS ENUM ('WAITING', 'STARTED', 'FINISHED');
-CREATE TYPE "round_status" AS ENUM ('WAITING', 'STARTED', 'FINISHED');
+CREATE TYPE "round_status" AS ENUM ('PICKING', 'VOTING', 'SHOWING');
 CREATE TYPE "user_role_enum" AS ENUM ('USER', 'ADMIN', 'CREATOR');
 
 CREATE TABLE "games" (
@@ -79,7 +79,7 @@ CREATE TABLE "game_rounds" (
     "game_id" UUID REFERENCES games(id),
     "round_number" INTEGER,
     "situation_id" UUID REFERENCES situations(id),
-    "status" "round_status" DEFAULT 'WAITING',
+    "status" "round_status" DEFAULT 'PICKING',
 );
 
 CREATE TABLE "player_moves" (

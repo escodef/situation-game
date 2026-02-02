@@ -1,5 +1,5 @@
 export interface ICard {
-	id: string;
-	url: string;
-	cardPackId?: string;
+    id: string;
+    url: string;
+    cardPackId?: string;
 }

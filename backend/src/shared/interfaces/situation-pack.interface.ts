@@ -1,7 +1,7 @@
-import type { ISituation } from "./situation.interface";
+import type { ISituation } from './situation.interface';
 
 export interface ISituationPack {
-	id: string;
-	name: string;
-	situations?: ISituation[];
+    id: string;
+    name: string;
+    situations?: ISituation[];
 }

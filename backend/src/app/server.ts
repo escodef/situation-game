@@ -1,13 +1,13 @@
 import Bun from 'bun';
 import { verifyAccessToken } from 'src/shared/utils/jwt.util';
 import { handleRoutes } from './routes';
-import { ISocketData } from './socket/types/types';
+import { ISocketData } from './socket/types';
 import { handleMessage } from './socket/websocket.handler';
 import { WebsocketManager } from './socket/websocket.manager';
 
 export const createApp = () => {
     const wsManager = WebsocketManager.getInstance();
-    const PORT = Bun.env.PORT || 3000;
+    const PORT = 3000;
 
     const server = Bun.serve<ISocketData>({
         port: PORT,
@@ -32,7 +32,7 @@ export const createApp = () => {
 
                 const success = server.upgrade(req, {
                     data: {
-                        userId: payload.id,
+                        userId: payload.userId,
                         token: token,
                     },
                 });
@@ -48,7 +48,7 @@ export const createApp = () => {
 
         websocket: {
             open(ws) {
-                wsManager.handleConnect(ws, ws.data.userId);
+                wsManager.handleConnect(ws);
             },
             message(ws, message) {
                 handleMessage(ws, message);

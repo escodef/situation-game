@@ -1,110 +1,63 @@
-import type { ServerWebSocket } from "bun";
-import type {
-	ISocketData,
-	ISocketIncomeMessage,
-	TSocketOutcomeMessage,
-} from "./types/types";
-
-interface ActiveUser {
-	userId: number;
-	ws: ServerWebSocket<ISocketData>;
-}
+import type { ServerWebSocket } from 'bun';
+import type { ISocketData, TSocketOutcomeMessage } from './types';
 
 export class WebsocketManager {
-	private static instance: WebsocketManager;
+    private static instance: WebsocketManager;
 
-	private readonly users: Map<number, ActiveUser> = new Map();
-	private readonly rooms: Map<string, Set<number>> = new Map();
+    private readonly users: Map<string, ServerWebSocket<ISocketData>> = new Map();
 
-	public static getInstance(): WebsocketManager {
-		if (!WebsocketManager.instance) {
-			WebsocketManager.instance = new WebsocketManager();
-		}
-		return WebsocketManager.instance;
-	}
+    public static getInstance(): WebsocketManager {
+        if (!WebsocketManager.instance) {
+            WebsocketManager.instance = new WebsocketManager();
+        }
+        return WebsocketManager.instance;
+    }
 
-	public handleConnect(ws: ServerWebSocket<ISocketData>, userId: number): void {
-		const activeUser: ActiveUser = { userId, ws };
-		this.users.set(userId, activeUser);
-		console.log(`User ${userId} connected.`);
-	}
+    public handleConnect(ws: ServerWebSocket<ISocketData>): void {
+        const userId = ws.data.userId;
 
-	public handleDisconnect(userId: number): void {
-		if (this.users.has(userId)) {
-			this.users.delete(userId);
-			this.rooms.forEach((userIds, roomId) => {
-				if (userIds.has(userId)) {
-					userIds.delete(userId);
-					if (userIds.size === 0) {
-						this.rooms.delete(roomId);
-					}
-				}
-			});
-			console.log(`User ${userId} disconnected. Rooms cleaned.`);
-		}
-	}
+        const existingWs = this.users.get(userId);
+        if (existingWs) {
+            existingWs.close(4000, 'Logged in from another device');
+        }
 
-	public joinRoom(userId: number, roomId: string): void {
-		if (!this.users.has(userId)) return;
+        this.users.set(userId, ws);
+        console.debug(`User ${userId} connected.`);
+        ws.subscribe('global');
+    }
 
-		if (!this.rooms.has(roomId)) {
-			this.rooms.set(roomId, new Set());
-		}
+    public handleDisconnect(userId: string): void {
+        this.users.delete(String(userId));
+        console.debug(`User ${userId} disconnected.`);
+    }
 
-		this.rooms.get(roomId).add(userId);
-	}
+    public joinRoom(ws: ServerWebSocket<ISocketData>, gameId: string): void {
+        ws.subscribe(gameId);
+    }
 
-	public leaveRoom(userId: number, roomId: string): void {
-		const userIds = this.rooms.get(roomId);
-		if (userIds) {
-			userIds.delete(userId);
-			if (userIds.size === 0) {
-				this.rooms.delete(roomId);
-			}
-		}
-	}
+    public leaveRoom(ws: ServerWebSocket<ISocketData>, gameId: string): void {
+        ws.unsubscribe(gameId);
+    }
 
-	public getRoomUserCount(roomId: string): number {
-		return this.rooms.get(roomId)?.size || 0;
-	}
+    public sendToUser(userId: string, message: TSocketOutcomeMessage): void {
+        const ws = this.users.get(String(userId));
+        if (ws) {
+            ws.send(JSON.stringify(message));
+        }
+    }
 
-	public sendToUser(userId: number, message: ISocketIncomeMessage): void {
-		const user = this.users.get(userId);
-		if (user) {
-			user.ws.send(JSON.stringify(message));
-		}
-	}
+    public sendToRoom(
+        ws: ServerWebSocket<ISocketData>,
+        roomId: string,
+        message: TSocketOutcomeMessage,
+    ): void {
+        ws.publish(roomId, JSON.stringify(message));
+    }
 
-	public sendToRoom(
-		roomId: string,
-		message: TSocketOutcomeMessage,
-		excludeUserId?: number,
-	): void {
-		const userIds = this.rooms.get(roomId);
-		if (userIds) {
-			const messageString = JSON.stringify(message);
-			userIds.forEach((userId) => {
-				if (userId !== excludeUserId) {
-					const user = this.users.get(userId);
-					if (user) {
-						user.ws.send(messageString);
-					}
-				}
-			});
-		}
-	}
-
-	public broadcast(
-		message: TSocketOutcomeMessage,
-		excludeUserId?: number,
-	): void {
-		const messageString = JSON.stringify(message);
-		this.users.forEach((user) => {
-			if (user.userId !== excludeUserId) {
-				user.ws.send(messageString);
-			}
-		});
-	}
+    public broadcast(ws: ServerWebSocket<ISocketData>, message: TSocketOutcomeMessage): void {
+        const messageString = JSON.stringify(message);
+        ws.publish('global', messageString);
+    }
 }
 
-export const websocketInstance = new WebsocketManager();
+export const websocketInstance = WebsocketManager.getInstance();

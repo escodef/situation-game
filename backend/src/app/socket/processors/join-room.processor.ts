@@ -1,14 +1,17 @@
-import type { ServerWebSocket } from "bun";
-import { ESocketOutcomeEvent, type ISocketData } from "../types/types";
-import { websocketInstance } from "../websocket.manager";
+import type { ServerWebSocket } from 'bun';
+import { UserRepo } from 'src/database/repositories/user.repo';
+import { ESocketOutcomeEvent } from 'src/shared/enums';
+import { ISocketData } from '../types';
+import { websocketInstance } from '../websocket.manager';
 
-export const processJoinRoom = async (
-	ws: ServerWebSocket<ISocketData>,
-	data: { roomId: string },
+export const processJoinGame = async (
+    ws: ServerWebSocket<ISocketData>,
+    data: { gameId: string },
 ) => {
-	websocketInstance.joinRoom(ws.data.userId, data.roomId);
-	websocketInstance.sendToRoom(data.roomId, {
-		event: ESocketOutcomeEvent.JOINED_TO_ROOM,
-		data: { userId: ws.data.userId },
-	});
+    websocketInstance.joinRoom(ws.data.userId, data.gameId);
+    await UserRepo.joinGame(ws.data.userId, data.gameId);
+    websocketInstance.sendToRoom(data.gameId, {
+        event: ESocketOutcomeEvent.PLAYER_JOINED,
+        data: { userId: ws.data.userId },
+    });
 };
