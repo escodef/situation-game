@@ -1,13 +1,13 @@
-import { EUserRole } from '../enums/role.enum';
-import { IRefreshToken } from './refresh-token.interface';
+import type { EUserRole } from "../enums/role.enum";
+import type { ISession } from "./session.interface";
 
 export interface IUser {
-    id: string;
-    nickname: string;
-    roles: EUserRole[];
-    age: number;
-    email: string;
-    gameId: string | null;
-    password?: string;
-    refreshTokens?: IRefreshToken[];
+	id: string;
+	nickname: string;
+	roles: EUserRole[];
+	email: string;
+	score: number;
+	gameId: string | null;
+	password?: string;
+	sessions?: ISession[];
 }

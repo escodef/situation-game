@@ -1,9 +1,9 @@
-import { ServerWebSocket } from 'bun';
-import { ISocketData } from '../types/types';
+import type { ServerWebSocket } from "bun";
+import type { ISocketData } from "../types/types";
 
 export const processPlayCard = async (
-    ws: ServerWebSocket<ISocketData>,
-    data: any
+	ws: ServerWebSocket<ISocketData>,
+	data: any,
 ) => {
-    console.log(`User ${ws.data.userId} played a card`);
+	console.log(`User ${ws.data.userId} played a card`);
 };

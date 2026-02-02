@@ -6,6 +6,7 @@ export const GamesRepo = {
 		const sql = `
             SELECT * FROM "games"
             WHERE id = $1 or code = $2"
+			LIMIT 1
         `;
 		const { rows } = await db.query<IGame>(sql, [codeOrId, codeOrId]);
 		return rows[0];

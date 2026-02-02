@@ -1,4 +1,5 @@
 CREATE TYPE "game_status" AS ENUM ('WAITING', 'STARTED', 'FINISHED');
+CREATE TYPE "round_status" AS ENUM ('WAITING', 'STARTED', 'FINISHED');
 CREATE TYPE "user_role_enum" AS ENUM ('USER', 'ADMIN', 'CREATOR');
 
 CREATE TABLE "games" (
@@ -16,7 +17,6 @@ CREATE TABLE "users" (
     "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     "nickname" VARCHAR(255) NOT NULL,
     "roles" "user_role_enum"[] DEFAULT '{USER}',
-    "age" INTEGER,
     "score" INTEGER DEFAULT 0,
     "email" VARCHAR(255) NOT NULL,
     "password" VARCHAR(255),
@@ -28,7 +28,7 @@ CREATE UNIQUE INDEX "email_idx" ON "users" ("email");
 ALTER TABLE "games" ADD CONSTRAINT "games_owner_id_fkey";
 FOREIGN KEY ("owner_id") REFERENCES "users"("id") ON DELETE SET NULL;
 
-CREATE TABLE "refresh_tokens" (
+CREATE TABLE "sessions" (
     "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     "user_id" UUID REFERENCES "users"("id") ON DELETE CASCADE,
     "access_token" TEXT NOT NULL,
@@ -79,8 +79,7 @@ CREATE TABLE "game_rounds" (
     "game_id" UUID REFERENCES games(id),
     "round_number" INTEGER,
     "situation_id" UUID REFERENCES situations(id),
-    "status" VARCHAR(20),
-    "ends_at" TIMESTAMP
+    "status" "round_status" DEFAULT 'WAITING',
 );
 
 CREATE TABLE "player_moves" (
