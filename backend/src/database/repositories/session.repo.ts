@@ -1,3 +1,4 @@
+import { AUTH_CONFIG } from 'src/shared';
 import type { ISession } from 'src/shared/interfaces/session.interface';
 import { db } from '../data-source';
 
@@ -40,8 +41,8 @@ export const SessionRepo = {
         accessToken: string;
         refreshToken: string;
     }): Promise<ISession> {
-        const expiresInDays = Number(process.env.JWT_REFRESH_EXPIRES_IN);
-        const expiresAt = new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000);
+        const refreshExpires = AUTH_CONFIG.refreshExpiresMs;
+        const expiresAt = new Date(Date.now() + refreshExpires);
         const sql = `
             INSERT INTO "sessions" (user_id, access_token, refresh_token, expires_at)
             VALUES ($1, $2, $3, $4)
