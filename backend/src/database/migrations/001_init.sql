@@ -25,7 +25,7 @@ CREATE TABLE "users" (
 
 CREATE UNIQUE INDEX "email_idx" ON "users" ("email");
 
-ALTER TABLE "games" ADD CONSTRAINT "games_owner_id_fkey";
+ALTER TABLE "games" ADD CONSTRAINT "games_owner_id_fkey"
 FOREIGN KEY ("owner_id") REFERENCES "users"("id") ON DELETE SET NULL;
 
 CREATE TABLE "sessions" (
@@ -37,15 +37,20 @@ CREATE TABLE "sessions" (
     "created_at" TIMESTAMP DEFAULT NOW()
 );
 
+CREATE TABLE "card_packs" (
+    "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    "name" VARCHAR(255) NOT NULL
+);
+
 CREATE TABLE "cards" (
     "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     "url" TEXT NOT NULL,
     "card_pack_id" UUID REFERENCES card_packs(id)
 );
 
-CREATE TABLE "card_packs" (
+CREATE TABLE "situation_packs" (
     "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    "name" VARCHAR(255) NOT NULL,
+    "name" VARCHAR(500) NOT NULL
 );
 
 CREATE TABLE "situations" (
@@ -54,11 +59,6 @@ CREATE TABLE "situations" (
     "is_adult" BOOLEAN DEFAULT FALSE,
     "category" VARCHAR(255) NOT NULL,
     "situation_pack_id" UUID REFERENCES situation_packs(id)
-);
-
-CREATE TABLE "situation_packs" (
-    "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    "name" VARCHAR(500) NOT NULL
 );
 
 CREATE TABLE "game_card_packs" (
@@ -80,27 +80,36 @@ CREATE TABLE "game_rounds" (
     "round_number" INTEGER,
     "situation_id" UUID REFERENCES situations(id),
     "status" "round_status" DEFAULT 'PICKING',
+    "ends_at" TIMESTAMP NOT NULL
 );
 
 CREATE TABLE "player_moves" (
     "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     "round_id" UUID REFERENCES game_rounds(id) ON DELETE CASCADE,
-    "player_id" UUID REFERENCES users(id) ON DELETE CASCADE,
+    "user_id" UUID REFERENCES users(id) ON DELETE CASCADE,
     "card_id" UUID REFERENCES cards(id),
+    UNIQUE("round_id", "user_id")
 );
 
 CREATE TABLE "player_hands" (
     "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     "game_id" UUID REFERENCES "games"("id") ON DELETE CASCADE,
-    "player_id" UUID REFERENCES "users"("id") ON DELETE CASCADE,
+    "user_id" UUID REFERENCES "users"("id") ON DELETE CASCADE,
     "card_id" UUID REFERENCES "cards"("id"),
-    UNIQUE("player_id", "card_id")
+    UNIQUE("user_id", "card_id", "game_id")
 );
 
 CREATE TABLE "votes" (
     "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     "round_id" UUID REFERENCES "game_rounds"("id"),
     "voter_id" UUID REFERENCES "users"("id"),
-    "target_player_id" UUID REFERENCES "users"("id"),
-    UNIQUE("round_id", "voter_id")
+    "target_user_id" UUID REFERENCES "users"("id"),
+    UNIQUE("round_id", "voter_id"),
+    CONSTRAINT "no_self_voting" CHECK ("voter_id" <> "target_user_id")
 );
+
+CREATE INDEX "idx_game_rounds_game_id" ON "game_rounds" ("game_id");
+CREATE INDEX "idx_player_moves_round_id" ON "player_moves" ("round_id");
+CREATE INDEX "idx_votes_round_id" ON "votes" ("round_id");
+CREATE INDEX "idx_users_game_id" ON "users" ("game_id");
+CREATE INDEX "idx_player_hands_game_user" ON "player_hands" ("game_id", "user_id");

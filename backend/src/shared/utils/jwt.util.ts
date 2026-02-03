@@ -3,12 +3,12 @@ import { AUTH_CONFIG } from '../constants';
 import { TokenPayload } from '../interfaces';
 
 export const generateTokens = (payload: TokenPayload) => {
-    const accessToken = sign(payload, process.env.JWT_ACCESS_SECRET, {
-        expiresIn: (AUTH_CONFIG.accessExpires as any) || '15m',
+    const accessToken = sign(payload, AUTH_CONFIG.accessSecret, {
+        expiresIn: AUTH_CONFIG.accessExpires,
     });
 
-    const refreshToken = sign(payload, process.env.JWT_REFRESH_SECRET, {
-        expiresIn: (AUTH_CONFIG.refreshExpires as any) || '7d',
+    const refreshToken = sign(payload, AUTH_CONFIG.refreshSecret, {
+        expiresIn: AUTH_CONFIG.refreshExpires,
     });
 
     return { accessToken, refreshToken };
@@ -16,7 +16,7 @@ export const generateTokens = (payload: TokenPayload) => {
 
 export const verifyAccessToken = (token: string) => {
     try {
-        return verify(token, process.env.JWT_ACCESS_SECRET) as TokenPayload;
+        return verify(token, AUTH_CONFIG.accessSecret) as TokenPayload;
     } catch {
         return null;
     }
@@ -24,7 +24,7 @@ export const verifyAccessToken = (token: string) => {
 
 export const verifyRefreshToken = (token: string) => {
     try {
-        return verify(token, process.env.JWT_REFRESH_SECRET) as TokenPayload;
+        return verify(token, AUTH_CONFIG.refreshSecret) as TokenPayload;
     } catch {
         return null;
     }

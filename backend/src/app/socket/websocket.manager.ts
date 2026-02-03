@@ -23,11 +23,10 @@ export class WebsocketManager {
 
         this.users.set(userId, ws);
         console.debug(`User ${userId} connected.`);
-        ws.subscribe('global');
     }
 
     public handleDisconnect(userId: string): void {
-        this.users.delete(String(userId));
+        this.users.delete(userId);
         console.debug(`User ${userId} disconnected.`);
     }
 
@@ -40,7 +39,7 @@ export class WebsocketManager {
     }
 
     public sendToUser(userId: string, message: TSocketOutcomeMessage): void {
-        const ws = this.users.get(String(userId));
+        const ws = this.users.get(userId);
         if (ws) {
             ws.send(JSON.stringify(message));
         }
@@ -52,11 +51,6 @@ export class WebsocketManager {
         message: TSocketOutcomeMessage,
     ): void {
         ws.publish(roomId, JSON.stringify(message));
-    }
-
-    public broadcast(ws: ServerWebSocket<ISocketData>, message: TSocketOutcomeMessage): void {
-        const messageString = JSON.stringify(message);
-        ws.publish('global', messageString);
     }
 }
 
