@@ -1,4 +1,5 @@
 import type { EGameStatus } from '../enums';
+import { IGameRound } from './game-round.interface';
 import type { IUser } from './user.interface';
 
 export interface IGame {
@@ -10,4 +11,5 @@ export interface IGame {
     dateCreated: Date;
     isOpen: boolean;
     players?: Partial<IUser>[];
+    rounds?: Partial<IGameRound>[];
 }
