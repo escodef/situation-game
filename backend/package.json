@@ -20,7 +20,8 @@
         "lint": "bunx biome lint --write",
         "lint:check": "bunx biome lint",
         "format": "bunx biome format --write",
-        "format:check": "bunx biome format"
+        "format:check": "bunx biome format",
+        "db:migrate": "bun ./src/database/migrate.ts"
     },
     "dependencies": {
         "@aws-sdk/client-s3": "^3.985.0",

@@ -2,6 +2,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { db } from './data-source';
 
+const MIGRATIONS_DIR = path.resolve(import.meta.dirname, './migrations');
+
 async function runMigrations() {
     const client = await db.connect();
 
@@ -13,14 +15,20 @@ async function runMigrations() {
         );
     `);
 
-    const migrationFiles = fs.readdirSync('./migrations').sort();
+    if (!fs.existsSync(MIGRATIONS_DIR)) {
+        console.error(`Папка не найдена: ${MIGRATIONS_DIR}`);
+        client.release();
+        return;
+    }
+
+    const migrationFiles = fs.readdirSync(MIGRATIONS_DIR).sort();
 
     for (const file of migrationFiles) {
         const check = await client.query('SELECT id FROM _migrations WHERE name = $1', [file]);
 
         if (check.rowCount === 0) {
             console.log(`Executing: ${file}`);
-            const sql = fs.readFileSync(path.join('./migrations', file), 'utf8');
+            const sql = fs.readFileSync(path.join(MIGRATIONS_DIR, file), 'utf8');
 
             await client.query('BEGIN');
             try {

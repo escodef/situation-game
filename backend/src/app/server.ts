@@ -1,6 +1,6 @@
 import Bun from 'bun';
 import { ISocketData, verifyAccessToken } from 'src/shared';
-import { handleRoutes } from './routes';
+import { handleRoutes } from './app.router';
 import { handleMessage } from './socket/websocket.handler';
 import { WebsocketManager } from './socket/websocket.manager';
 

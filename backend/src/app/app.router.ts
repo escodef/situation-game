@@ -1,9 +1,9 @@
 import { inspect } from 'bun';
 import { authenticate } from 'src/shared/middlewares';
-import { loginUser, refreshToken, registerUser } from '../controllers/auth';
-import { createGame, getGames } from '../controllers/game';
-import { getUser } from '../controllers/user';
-import { getMe } from '../controllers/user/me.controller';
+import { loginUser, refreshToken, registerUser } from './controllers/auth';
+import { createGame, getGames } from './controllers/game';
+import { getUser } from './controllers/user';
+import { getMe } from './controllers/user/me.controller';
 
 export const handleRoutes = async (req: Request): Promise<Response> => {
     const url = new URL(req.url);
