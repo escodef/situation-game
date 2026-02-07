@@ -1,5 +1,6 @@
 import { EUserRole } from 'src/shared/enums/role.enum';
 import type { IUser } from 'src/shared/interfaces/user.interface';
+import { Queryable } from 'src/shared/types/pg.types';
 import { db } from '../data-source';
 
 export const UserRepo = {
@@ -16,22 +17,22 @@ export const UserRepo = {
         return rows[0] || null;
     },
 
-    async joinGame(userId: string, gameId: string): Promise<void> {
+    async joinGame(userId: string, gameId: string, client: Queryable = db): Promise<void> {
         const sql = `
             UPDATE "users" 
             SET game_id = $1, score = 0 
             WHERE id = $2
         `;
-        await db.query(sql, [gameId, userId]);
+        await client.query(sql, [gameId, userId]);
     },
 
-    async leaveGame(userId: string): Promise<void> {
+    async leaveGame(userId: string, client: Queryable = db): Promise<void> {
         const sql = `
             UPDATE "users" 
             SET game_id = NULL, score = 0 
             WHERE id = $1
         `;
-        await db.query(sql, [userId]);
+        await client.query(sql, [userId]);
     },
 
     async create(data: { email: string; passwordHash: string; nickname: string }): Promise<IUser> {

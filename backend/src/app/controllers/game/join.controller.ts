@@ -1,13 +1,33 @@
 import { inspect } from 'bun';
-import { GamesRepo } from 'src/database/repositories/game.repo';
+import { UserRepo } from 'src/database/repositories';
+import { GameRepo } from 'src/database/repositories/game.repo';
 import { TokenPayload } from 'src/shared';
 import { EGameStatus } from 'src/shared/enums';
+import z from 'zod';
+
+const joinGameSchema = z.object({
+    code: z
+        .string()
+        .length(6)
+        .regex(/^[A-Za-z0-9]+$/),
+});
 
 export const joinGame = async (req: Request, user: TokenPayload): Promise<Response> => {
     try {
-        const { code } = await req.json();
+        const body = await req.json();
 
-        const game = await GamesRepo.findByCode(code);
+        const result = joinGameSchema.safeParse(body);
+
+        if (!result.success) {
+            return Response.json(
+                { success: false, error: z.flattenError(result.error) },
+                { status: 400 },
+            );
+        }
+
+        const { code } = result.data;
+
+        const game = await GameRepo.findByCode(code);
 
         if (!game) {
             return Response.json({ success: false, message: 'Room not found' }, { status: 404 });
@@ -20,7 +40,7 @@ export const joinGame = async (req: Request, user: TokenPayload): Promise<Respon
             );
         }
 
-        await db.update(userTable).set({ gameId: game.id }).where(eq(userTable.id, user.playerId));
+        await UserRepo.joinGame(user.userId, game.id);
 
         return Response.json({
             success: true,

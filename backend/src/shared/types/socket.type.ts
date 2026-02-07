@@ -1,15 +1,6 @@
-import type { ServerWebSocket } from 'bun';
-import { ESocketIncomeEvent, ESocketOutcomeEvent } from 'src/shared/enums';
-
-export interface ISocketIncomeMessage<T = unknown> {
-    event: ESocketIncomeEvent;
-    data: T;
-}
-
-export interface ISocketData {
-    userId: string;
-    token: string;
-}
+import { ServerWebSocket } from 'bun';
+import { ESocketOutcomeEvent } from '../enums';
+import { ISocketData } from '../interfaces/socket.interface';
 
 export type TSocketOutcomeMessage<T = unknown> =
     | {

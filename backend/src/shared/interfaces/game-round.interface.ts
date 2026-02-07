@@ -8,5 +8,6 @@ export interface IGameRound {
     situationId: string;
     status: ERoundStatus;
     endsAt: Date;
+    remainingMs: number;
     situation?: Partial<ISituation>;
 }

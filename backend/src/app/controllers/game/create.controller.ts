@@ -1,12 +1,14 @@
 import { inspect } from 'bun';
-import { GamesRepo } from 'src/database/repositories/game.repo';
-import { TokenPayload } from 'src/shared';
-import { generateRandomString } from 'src/shared/utils';
+import { GameRepo } from 'src/database/repositories/game.repo';
+import { generateRandomString, TokenPayload } from 'src/shared';
 import z from 'zod';
 
 const createGameSchema = z.object({
-    maxPlayers: z.int().min(2, 'Must be at least 2 players in the room'),
+    maxPlayers: z.int().min(2, 'Для игры нужно минимум 2 игрока'),
+    maxRounds: z.int().min(1, 'В игре должен быть хотя бы 1 раунд'),
     isOpen: z.boolean().default(false),
+    situationPacksIds: z.array(z.uuid()).min(1, 'Нужно указать минимум один набор ситуаций'),
+    cardPacksIds: z.array(z.uuid()).min(1, 'Нужно выбрать минимум один набор карточек'),
 });
 
 export const createGame = async (req: Request, user: TokenPayload): Promise<Response> => {
@@ -16,17 +18,20 @@ export const createGame = async (req: Request, user: TokenPayload): Promise<Resp
 
         if (!parseResult.success) {
             return Response.json(
-                { success: false, errors: z.treeifyError(parseResult.error) },
+                { success: false, error: z.flattenError(parseResult.error) },
                 { status: 400 },
             );
         }
         const code = generateRandomString();
 
-        const newGame = await GamesRepo.create({
+        const newGame = await GameRepo.create({
             code: code,
             ownerId: user.userId,
             maxPlayers: parseResult.data.maxPlayers,
+            maxRounds: parseResult.data.maxRounds,
             isOpen: parseResult.data.isOpen,
+            situationPacksIds: parseResult.data.situationPacksIds,
+            cardPacksIds: parseResult.data.cardPacksIds,
         });
 
         return Response.json(

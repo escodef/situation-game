@@ -1,4 +1,4 @@
-import { UserRepo } from 'src/database/repositories/user.repo';
+import { UserRepo } from 'src/database/repositories';
 import { z } from 'zod';
 
 const registerSchema = z.object({
@@ -10,8 +10,16 @@ const registerSchema = z.object({
 export const registerUser = async (req: Request): Promise<Response> => {
     try {
         const body = await req.json();
-        const { email, password, nickname } = registerSchema.parse(body);
+        const result = registerSchema.safeParse(body);
 
+        if (!result.success) {
+            return Response.json(
+                { success: false, error: z.flattenError(result.error) },
+                { status: 400 },
+            );
+        }
+
+        const { email, password, nickname } = result.data;
         const existing = await UserRepo.findByEmailForAuth(email);
         if (existing) {
             return Response.json({ success: false, message: 'Email exists' }, { status: 409 });

@@ -1,7 +1,11 @@
 import type { ServerWebSocket } from 'bun';
-import { ESocketIncomeEvent } from 'src/shared/enums';
+import {
+    ESocketIncomeEvent,
+    ESocketOutcomeEvent,
+    ISocketData,
+    ISocketIncomeMessage,
+} from 'src/shared';
 import { processJoinGame } from './processors';
-import { ISocketData, ISocketIncomeMessage } from './types';
 
 export const handleMessage = async (
     ws: ServerWebSocket<ISocketData>,
@@ -14,7 +18,7 @@ export const handleMessage = async (
         if (!message.event) {
             ws.send(
                 JSON.stringify({
-                    event: 'error',
+                    event: ESocketOutcomeEvent.ERROR,
                     data: 'No event name provided',
                 }),
             );
@@ -27,7 +31,10 @@ export const handleMessage = async (
             case ESocketIncomeEvent.JOIN_ROOM:
                 await processJoinGame(ws, message.data);
                 break;
-
+            case ESocketIncomeEvent.START_GAME:
+                break;
+            case ESocketIncomeEvent.VOTE:
+                break;
             default:
                 ws.send(JSON.stringify({ event: 'error', data: 'Unknown event' }));
         }

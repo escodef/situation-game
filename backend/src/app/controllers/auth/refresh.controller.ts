@@ -1,4 +1,4 @@
-import { RefreshTokenRepo } from 'src/database/repositories/session.repo';
+import { SessionRepo } from 'src/database/repositories';
 import { dayInMS } from 'src/shared';
 import { generateTokens, verifyRefreshToken } from 'src/shared/utils/jwt.util';
 
@@ -17,7 +17,7 @@ export const refreshToken = async (req: Request): Promise<Response> => {
             return Response.json({ success: false, message: 'Invalid token' }, { status: 401 });
         }
 
-        const storedSession = await RefreshTokenRepo.findByOldRefresh(oldRefreshToken);
+        const storedSession = await SessionRepo.findByOldRefresh(oldRefreshToken);
 
         if (!storedSession || new Date() > storedSession.expiresAt) {
             return Response.json(
@@ -26,14 +26,13 @@ export const refreshToken = async (req: Request): Promise<Response> => {
             );
         }
 
-        await RefreshTokenRepo.deleteByRefresh(oldRefreshToken);
+        await SessionRepo.deleteByRefresh(oldRefreshToken);
 
         const tokens = generateTokens({
             userId: storedSession.user.id,
-            roles: storedSession.user.roles,
         });
 
-        await RefreshTokenRepo.create({
+        await SessionRepo.create({
             userId: storedSession.user.id,
             accessToken: tokens.accessToken,
             refreshToken: tokens.refreshToken,

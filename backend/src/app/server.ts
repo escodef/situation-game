@@ -1,7 +1,6 @@
 import Bun from 'bun';
-import { verifyAccessToken } from 'src/shared/utils/jwt.util';
+import { ISocketData, verifyAccessToken } from 'src/shared';
 import { handleRoutes } from './routes';
-import { ISocketData } from './socket/types';
 import { handleMessage } from './socket/websocket.handler';
 import { WebsocketManager } from './socket/websocket.manager';
 
@@ -33,7 +32,6 @@ export const createApp = () => {
                 const success = server.upgrade(req, {
                     data: {
                         userId: payload.userId,
-                        token: token,
                     },
                 });
 

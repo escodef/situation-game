@@ -14,7 +14,7 @@ export const loginUser = async (req: Request): Promise<Response> => {
 
         if (!parseResult.success) {
             return Response.json(
-                { success: false, errors: z.treeifyError(parseResult.error) },
+                { success: false, error: z.flattenError(parseResult.error) },
                 { status: 400 },
             );
         }
@@ -40,7 +40,6 @@ export const loginUser = async (req: Request): Promise<Response> => {
 
         const tokens = generateTokens({
             userId: user.id,
-            roles: user.roles,
         });
 
         const { password: _, ...userPublicData } = user;

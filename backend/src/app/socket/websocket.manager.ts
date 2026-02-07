@@ -1,5 +1,5 @@
 import type { ServerWebSocket } from 'bun';
-import type { ISocketData, TSocketOutcomeMessage } from './types';
+import { ISocketData, TSocketOutcomeMessage } from 'src/shared';
 
 export class WebsocketManager {
     private static instance: WebsocketManager;

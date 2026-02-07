@@ -1,5 +1,5 @@
 CREATE TYPE "game_status" AS ENUM ('WAITING', 'STARTED', 'FINISHED');
-CREATE TYPE "round_status" AS ENUM ('PICKING', 'VOTING', 'SHOWING');
+CREATE TYPE "round_status" AS ENUM ('PICKING', 'PAUSED', 'VOTING', 'SHOWING');
 CREATE TYPE "user_role_enum" AS ENUM ('USER', 'ADMIN', 'CREATOR');
 
 CREATE TABLE "games" (
@@ -7,7 +7,7 @@ CREATE TABLE "games" (
     "code" VARCHAR(6) NOT NULL UNIQUE,
     "owner_id" UUID,
     "status" "game_status" DEFAULT 'WAITING',
-    "rounds" INTEGER NOT NULL,
+    "max_rounds" INTEGER NOT NULL,
     "max_players" INTEGER NOT NULL,
     "date_created" TIMESTAMP DEFAULT NOW(),
     "is_open" BOOLEAN DEFAULT FALSE
@@ -57,7 +57,7 @@ CREATE TABLE "situations" (
     "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     "text" VARCHAR(500) NOT NULL,
     "is_adult" BOOLEAN DEFAULT FALSE,
-    "category" VARCHAR(255) NOT NULL,
+    "category" VARCHAR(255),
     "situation_pack_id" UUID REFERENCES situation_packs(id)
 );
 
@@ -80,7 +80,8 @@ CREATE TABLE "game_rounds" (
     "round_number" INTEGER,
     "situation_id" UUID REFERENCES situations(id),
     "status" "round_status" DEFAULT 'PICKING',
-    "ends_at" TIMESTAMP NOT NULL
+    "ends_at" TIMESTAMP NOT NULL,
+    "remaining_ms" INTEGER DEFAULT 0
 );
 
 CREATE TABLE "player_moves" (

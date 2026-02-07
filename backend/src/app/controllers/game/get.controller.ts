@@ -1,5 +1,4 @@
-import { count, eq } from 'drizzle-orm';
-import { db } from 'src/database/data-source';
+import { GameRepo } from 'src/database/repositories';
 import z from 'zod';
 
 const getGameDto = z.object({
@@ -20,7 +19,7 @@ export const getGames = async (req: Request): Promise<Response> => {
                 {
                     success: false,
                     message: 'Validation failed',
-                    errors: z.treeifyError(parseResult.error).errors,
+                    error: z.flattenError(parseResult.error),
                 },
                 { status: 422 },
             );
@@ -29,25 +28,16 @@ export const getGames = async (req: Request): Promise<Response> => {
         const { page: vPage, take: vTake } = parseResult.data;
         const offset = (vPage - 1) * vTake;
 
-        const [games, totalResult] = await Promise.all([
-            db
-                .select()
-                .from(gamesTable)
-                .where(eq(gamesTable.isOpen, true))
-                .limit(vTake)
-                .offset(offset),
-            db.select({ value: count() }).from(gamesTable).where(eq(gamesTable.isOpen, true)),
-        ]);
+        const { games, total } = await GameRepo.findOpenGames(vTake, offset);
 
-        const totalCount = totalResult[0].value;
-        const totalPages = Math.ceil(totalCount / vTake);
+        const totalPages = Math.ceil(total / vTake);
 
         return Response.json(
             {
                 success: true,
                 data: games,
                 meta: {
-                    totalCount,
+                    totalCount: total,
                     totalPages,
                     currentPage: vPage,
                     hasPrevPage: vPage > 1,

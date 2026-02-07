@@ -1,4 +1,4 @@
-import { RefreshTokenRepo } from 'src/database/repositories/session.repo';
+import { SessionRepo } from 'src/database/repositories';
 
 export const logoutUser = async (req: Request): Promise<Response> => {
     try {
@@ -9,7 +9,7 @@ export const logoutUser = async (req: Request): Promise<Response> => {
             return Response.json({ success: false, message: 'Unathorized' }, { status: 401 });
         }
 
-        await RefreshTokenRepo.deleteByAccess(token);
+        await SessionRepo.deleteByAccess(token);
     } catch (error) {
         console.error('Login Error:', error);
         return Response.json({ success: false, message: 'Internal error' }, { status: 500 });
