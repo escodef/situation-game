@@ -39,6 +39,19 @@ export const GameRepo = {
             total: countRes.rows[0]?.total || 0,
         };
     },
+
+    async findByOwnerId(ownerId: string, client: Queryable = db): Promise<IGame | null> {
+        const sql =
+            'SELECT id, status, code, max_players as "maxPlayers" FROM "games" WHERE owner_id = $1';
+        const { rows } = await client.query(sql, [ownerId]);
+        return rows[0] || null;
+    },
+
+    async updateStatus(gameId: string, status: string, client: Queryable = db): Promise<void> {
+        const sql = 'UPDATE "games" SET status = $1 WHERE id = $2';
+        await client.query(sql, [status, gameId]);
+    },
+
     async findByCode(codeOrId: string, client: Queryable = db) {
         const sql = `
             SELECT 

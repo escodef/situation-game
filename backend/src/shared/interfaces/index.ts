@@ -4,6 +4,7 @@ export * from './game.interface';
 export * from './game-round.interface';
 export * from './jwt.interface';
 export * from './player-hand.interface';
+export * from './player-move.interface';
 export * from './session.interface';
 export * from './situation.interface';
 export * from './situation-pack.interface';

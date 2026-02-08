@@ -5,7 +5,7 @@ import {
     ISocketData,
     ISocketIncomeMessage,
 } from 'src/shared';
-import { processJoinGame } from './processors';
+import { processJoinGame, processPickCard, processStartGame } from './processors';
 
 export const handleMessage = async (
     ws: ServerWebSocket<ISocketData>,
@@ -28,10 +28,14 @@ export const handleMessage = async (
         console.debug(`Event received: ${message.event} from User ${ws.data.userId}`);
 
         switch (message.event) {
-            case ESocketIncomeEvent.JOIN_ROOM:
+            case ESocketIncomeEvent.JOIN_GAME:
                 await processJoinGame(ws, message.data);
                 break;
             case ESocketIncomeEvent.START_GAME:
+                await processStartGame(ws, message.data);
+                break;
+            case ESocketIncomeEvent.PICK_CARD:
+                await processPickCard(ws, message.data);
                 break;
             case ESocketIncomeEvent.VOTE:
                 break;

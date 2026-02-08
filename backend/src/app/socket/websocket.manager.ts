@@ -30,11 +30,11 @@ export class WebsocketManager {
         console.debug(`User ${userId} disconnected.`);
     }
 
-    public joinRoom(ws: ServerWebSocket<ISocketData>, gameId: string): void {
+    public joinGame(ws: ServerWebSocket<ISocketData>, gameId: string): void {
         ws.subscribe(gameId);
     }
 
-    public leaveRoom(ws: ServerWebSocket<ISocketData>, gameId: string): void {
+    public leaveGame(ws: ServerWebSocket<ISocketData>, gameId: string): void {
         ws.unsubscribe(gameId);
     }
 
@@ -45,12 +45,18 @@ export class WebsocketManager {
         }
     }
 
-    public sendToRoom(
+    public sendToGame(
         ws: ServerWebSocket<ISocketData>,
-        roomId: string,
+        gameId: string,
         message: TSocketOutcomeMessage,
+        includeSelf: boolean = false,
     ): void {
-        ws.publish(roomId, JSON.stringify(message));
+        const msgString = JSON.stringify(message);
+        ws.publish(gameId, msgString);
+
+        if (includeSelf) {
+            ws.send(msgString);
+        }
     }
 }
 

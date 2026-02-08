@@ -1,2 +1,3 @@
-export * from './join-room.processor';
-export * from './play-card.processor';
+export * from './join-game.processor';
+export * from './pick-card.processor';
+export * from './start-game.processor';

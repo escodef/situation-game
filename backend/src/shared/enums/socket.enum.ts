@@ -1,5 +1,5 @@
 export enum ESocketIncomeEvent {
-    JOIN_ROOM = 'JOIN_ROOM',
+    JOIN_GAME = 'JOIN_GAME',
     START_GAME = 'START_GAME',
     PICK_CARD = 'PICK_CARD',
     VOTE = 'VOTE',
@@ -8,6 +8,7 @@ export enum ESocketIncomeEvent {
 
 export enum ESocketOutcomeEvent {
     PLAYER_JOINED = 'PLAYER_JOINED',
+    CARD_PICKED = 'CARD_PICKED',
     PLAYER_DISCONNECTED = 'PLAYER_DISCONNECTED',
     PLAYER_RECONNECTED = 'PLAYER_RECONNECTED',
     GAME_STARTED = 'GAME_STARTED',

@@ -10,6 +10,18 @@ export const UserRepo = {
         return rows[0] || null;
     },
 
+    async countPlayersInGame(gameId: string, client: Queryable = db): Promise<number> {
+        const sql = 'SELECT COUNT(*)::int as count FROM "users" WHERE game_id = $1';
+        const { rows } = await client.query<{ count: number }>(sql, [gameId]);
+        return rows[0]?.count || 0;
+    },
+
+    async getPlayersByGameId(gameId: string, client: Queryable = db): Promise<IUser[]> {
+        const sql = 'SELECT id, nickname, score FROM "users" WHERE game_id = $1';
+        const { rows } = await client.query(sql, [gameId]);
+        return rows;
+    },
+
     async findById(id: string): Promise<IUser | null> {
         const sql =
             'SELECT id, nickname, email, roles, age, game_id as "gameId" FROM "users" WHERE id = $1';
