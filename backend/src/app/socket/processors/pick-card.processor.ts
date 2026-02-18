@@ -47,7 +47,7 @@ export const processPickCard: TSocketProcessor<{ cardId: string; roundId: string
                 {
                     event: ESocketOutcomeEvent.ROUND_STAGE_CHANGED,
                     data: {
-                        status: 'SHOWING',
+                        status: ERoundStatus.SHOWING,
                         moves: await GameRoundRepo.getMovesWithCards(roundId, client),
                     },
                 },
