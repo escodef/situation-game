@@ -1,5 +1,6 @@
 import type { ServerWebSocket } from 'bun';
-import { ISocketData, TSocketOutcomeMessage } from 'src/shared';
+import { UserRepo } from 'src/database/repositories';
+import { ESocketOutcomeEvent, ISocketData, TSocketOutcomeMessage } from 'src/shared';
 
 export class WebsocketManager {
     private static instance: WebsocketManager;
@@ -13,7 +14,7 @@ export class WebsocketManager {
         return WebsocketManager.instance;
     }
 
-    public handleConnect(ws: ServerWebSocket<ISocketData>): void {
+    public async handleConnect(ws: ServerWebSocket<ISocketData>) {
         const userId = ws.data.userId;
 
         const existingWs = this.users.get(userId);
@@ -23,11 +24,30 @@ export class WebsocketManager {
 
         this.users.set(userId, ws);
         console.debug(`User ${userId} connected.`);
+
+        const user = await UserRepo.findById(userId);
+
+        if (user?.gameId) {
+            ws.subscribe(user.gameId);
+
+            this.sendToUser(userId, {
+                event: ESocketOutcomeEvent.PLAYER_RECONNECTED,
+                data: { gameId: user.gameId },
+            });
+        }
     }
 
-    public handleDisconnect(userId: string): void {
+    public async handleDisconnect(userId: string) {
         this.users.delete(userId);
         console.debug(`User ${userId} disconnected.`);
+        const user = await UserRepo.findWithGame(userId);
+
+        setTimeout(async () => {
+            if (this.users.has(userId)) return;
+
+            if (user?.game) {
+            }
+        }, 30000);
     }
 
     public joinGame(ws: ServerWebSocket<ISocketData>, gameId: string): void {

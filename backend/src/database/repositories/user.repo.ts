@@ -10,6 +10,38 @@ export const UserRepo = {
         return rows[0] || null;
     },
 
+    async findWithGame(userId: string): Promise<IUser | null> {
+        const sql = `
+        SELECT 
+            u.id, u.nickname, u.email, u.roles, u.score, u.game_id as "gameId",
+            g.id as "g_id", g.code as "g_code", g.status as "g_status", g.owner_id as "g_owner_id"
+        FROM "users" u
+        LEFT JOIN "games" g ON u.game_id = g.id
+        WHERE u.id = $1
+    `;
+        const { rows } = await db.query(sql, [userId]);
+        const row = rows[0];
+
+        if (!row) return null;
+
+        return {
+            id: row.id,
+            nickname: row.nickname,
+            email: row.email,
+            roles: row.roles,
+            score: row.score,
+            gameId: row.gameId,
+            game: row.g_id
+                ? {
+                      id: row.g_id,
+                      code: row.g_code,
+                      status: row.g_status,
+                      ownerId: row.g_owner_id,
+                  }
+                : undefined,
+        };
+    },
+
     async countPlayersInGame(gameId: string, client: Queryable = db): Promise<number> {
         const sql = 'SELECT COUNT(*)::int as count FROM "users" WHERE game_id = $1';
         const { rows } = await client.query<{ count: number }>(sql, [gameId]);

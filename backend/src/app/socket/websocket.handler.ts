@@ -40,10 +40,14 @@ export const handleMessage = async (
             case ESocketIncomeEvent.VOTE:
                 break;
             default:
-                ws.send(JSON.stringify({ event: 'error', data: 'Unknown event' }));
+                ws.send(
+                    JSON.stringify({ event: ESocketOutcomeEvent.ERROR, data: 'Unknown event' }),
+                );
         }
     } catch (error) {
         console.error('Error handling message:', error);
-        ws.send(JSON.stringify({ event: 'error', data: 'Invalid message format' }));
+        ws.send(
+            JSON.stringify({ event: ESocketOutcomeEvent.ERROR, data: 'Invalid message format' }),
+        );
     }
 };
