@@ -10,7 +10,7 @@ export interface IGame {
     ownerId: string;
     status: EGameStatus;
     maxPlayers: number;
-    dateCreated: Date;
+    createdAt: Date;
     isOpen: boolean;
     maxRounds: number;
     players?: Partial<IUser>[];

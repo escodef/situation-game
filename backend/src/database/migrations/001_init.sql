@@ -1,26 +1,30 @@
-CREATE TYPE "game_status" AS ENUM ('WAITING', 'STARTED', 'FINISHED');
-CREATE TYPE "round_status" AS ENUM ('PICKING', 'PAUSED', 'VOTING', 'SHOWING');
-CREATE TYPE "user_role_enum" AS ENUM ('USER', 'ADMIN', 'CREATOR');
-
 CREATE TABLE "games" (
     "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    "code" VARCHAR(6) NOT NULL UNIQUE,
+    "code" TEXT NOT NULL,
     "owner_id" UUID,
-    "status" "game_status" DEFAULT 'WAITING',
+    "status" TEXT DEFAULT 'WAITING',
     "max_rounds" INTEGER NOT NULL,
     "max_players" INTEGER NOT NULL,
-    "date_created" TIMESTAMP DEFAULT NOW(),
-    "is_open" BOOLEAN DEFAULT FALSE
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    "is_open" BOOLEAN DEFAULT FALSE,
+    CONSTRAINT chk_code_len CHECK(length(code) = 6),
+    CONSTRAINT chk_game_status CHECK (status IN ('WAITING', 'STARTED', 'FINISHED'))
 );
 
 CREATE TABLE "users" (
     "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    "nickname" VARCHAR(255) NOT NULL,
-    "roles" "user_role_enum"[] DEFAULT '{USER}',
+    "nickname" TEXT NOT NULL,
+    "roles" TEXT[] DEFAULT '{USER}',
     "score" INTEGER DEFAULT 0,
-    "email" VARCHAR(255) NOT NULL,
-    "password" VARCHAR(255),
-    "game_id" UUID REFERENCES "games"("id") ON DELETE SET NULL
+    "email" TEXT NOT NULL,
+    "password" TEXT NOT NULL,
+    "game_id" UUID REFERENCES "games"("id") ON DELETE SET NULL,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT chk_nickname_len CHECK(length(nickname) <= 25),
+    CONSTRAINT chk_email_len CHECK(length(email) <= 255),
+    CONSTRAINT chk_password_min_len CHECK(length(password) >= 8),
+    CONSTRAINT chk_password_max_len CHECK(length(password) <= 128),
+    CONSTRAINT chk_user_roles CHECK (roles <@ ARRAY['USER', 'ADMIN', 'CREATOR']::TEXT[])
 );
 
 CREATE UNIQUE INDEX "email_idx" ON "users" ("email");
@@ -33,13 +37,15 @@ CREATE TABLE "sessions" (
     "user_id" UUID REFERENCES "users"("id") ON DELETE CASCADE,
     "access_token" TEXT NOT NULL,
     "refresh_token" TEXT NOT NULL,
-    "expires_at" TIMESTAMP NOT NULL,
-    "created_at" TIMESTAMP DEFAULT NOW()
+    "expires_at" TIMESTAMPTZ NOT NULL,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE "card_packs" (
     "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    "name" VARCHAR(255) NOT NULL
+    "name" TEXT NOT NULL,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT chk_name_len CHECK(length(name) <= 255)
 );
 
 CREATE TABLE "cards" (
@@ -50,15 +56,20 @@ CREATE TABLE "cards" (
 
 CREATE TABLE "situation_packs" (
     "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    "name" VARCHAR(255) NOT NULL
+    "name" TEXT NOT NULL,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT chk_name_len CHECK(length(name) <= 255)
 );
 
 CREATE TABLE "situations" (
     "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    "text" VARCHAR(500) NOT NULL,
+    "text" TEXT NOT NULL,
     "is_adult" BOOLEAN DEFAULT FALSE,
-    "category" VARCHAR(255),
-    "situation_pack_id" UUID REFERENCES situation_packs(id)
+    "category" TEXT,
+    "situation_pack_id" UUID REFERENCES situation_packs(id),
+    CONSTRAINT chk_text_len CHECK(length(text) <= 500),
+    CONSTRAINT chk_category_len CHECK(length(category) <= 40)
+
 );
 
 CREATE TABLE "game_card_packs" (
@@ -73,16 +84,16 @@ CREATE TABLE "game_situation_packs" (
     PRIMARY KEY ("game_id", "situation_pack_id")
 );
 
-
 CREATE TABLE "game_rounds" (
     "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     "game_id" UUID REFERENCES games(id),
     "round_number" INTEGER NOT NULL,
     "situation_id" UUID REFERENCES situations(id),
-    "status" "round_status" DEFAULT 'PICKING',
-    "ends_at" TIMESTAMP NOT NULL,
+    "status" TEXT DEFAULT 'PICKING',
+    "ends_at" TIMESTAMPTZ NOT NULL,
     "remaining_ms" INTEGER DEFAULT 0,
-    UNIQUE("game_id", "round_number")
+    UNIQUE("game_id", "round_number"),
+    CONSTRAINT chk_round_status CHECK (status IN ('PICKING', 'PAUSED', 'VOTING', 'SHOWING'))
 );
 
 CREATE TABLE "player_moves" (
@@ -110,14 +121,6 @@ CREATE TABLE "votes" (
     CONSTRAINT "no_self_voting" CHECK ("voter_id" <> "target_user_id")
 );
 
-CREATE INDEX "idx_game_rounds_game_id" ON "game_rounds" ("game_id");
-CREATE INDEX "idx_player_moves_round_id" ON "player_moves" ("round_id");
-CREATE INDEX "idx_votes_round_id" ON "votes" ("round_id");
 CREATE INDEX "idx_users_game_id" ON "users" ("game_id");
 CREATE INDEX "idx_player_hands_game_user" ON "player_hands" ("game_id", "user_id");
-CREATE INDEX "idx_cards_card_pack_id" ON "cards" ("card_pack_id");
-CREATE INDEX "idx_situations_situation_pack_id" ON "situations" ("situation_pack_id");
 CREATE INDEX "idx_sessions_user_id" ON "sessions" ("user_id");
-CREATE INDEX "idx_games_owner_id" ON "games" ("owner_id");
-CREATE INDEX "idx_game_card_packs_pack_id" ON "game_card_packs" ("card_pack_id");
-CREATE INDEX "idx_game_situation_packs_pack_id" ON "game_situation_packs" ("situation_pack_id");

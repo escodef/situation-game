@@ -11,7 +11,8 @@ export interface IUser {
     email: string;
     score: number;
     gameId: string | null;
-    password?: string;
+    password: string;
+    createdAt: Date;
     sessions?: Partial<ISession>[];
     game?: Partial<IGame>;
     hand?: Partial<IPlayerHand>[];
