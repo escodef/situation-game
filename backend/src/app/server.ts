@@ -10,6 +10,7 @@ export const createApp = () => {
 
     const server = Bun.serve<ISocketData>({
         port: PORT,
+        maxRequestBodySize: 1024 * 1024 * 100,
 
         async fetch(req, server) {
             const url = new URL(req.url);

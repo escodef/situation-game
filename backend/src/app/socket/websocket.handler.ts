@@ -5,7 +5,7 @@ import {
     ISocketData,
     ISocketIncomeMessage,
 } from 'src/shared';
-import { processJoinGame, processPickCard, processStartGame } from './processors';
+import { processJoinGame, processPickCard, processStartGame, processVote } from './processors';
 
 export const handleMessage = async (
     ws: ServerWebSocket<ISocketData>,
@@ -38,6 +38,7 @@ export const handleMessage = async (
                 await processPickCard(ws, message.data);
                 break;
             case ESocketIncomeEvent.VOTE:
+                await processVote(ws, message.data);
                 break;
             default:
                 ws.send(

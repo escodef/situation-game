@@ -27,6 +27,8 @@ export const UserRepo = {
         return {
             id: row.id,
             nickname: row.nickname,
+            password: row.password,
+            createdAt: row.createdAt,
             email: row.email,
             roles: row.roles,
             score: row.score,

@@ -1,6 +1,6 @@
 import { ServerWebSocket } from 'bun';
 import { db } from 'src/database/data-source';
-import { CardPackRepo, GameRoundRepo, UserRepo } from 'src/database/repositories';
+import { CardPackRepo, GameRoundRepo, PlayerMoveRepo, UserRepo } from 'src/database/repositories';
 import { ERoundStatus, ESocketOutcomeEvent, ISocketData, TSocketProcessor } from 'src/shared';
 import { websocketInstance } from '../websocket.manager';
 
@@ -21,7 +21,7 @@ export const processPickCard: TSocketProcessor<{ cardId: string; roundId: string
             return;
         }
 
-        const alreadyMoved = await GameRoundRepo.hasUserMoved(roundId, userId, client);
+        const alreadyMoved = await PlayerMoveRepo.hasUserMoved(roundId, userId, client);
         if (alreadyMoved) {
             ws.send(JSON.stringify({ event: 'error', data: 'Вы уже сделали ход' }));
             return;
@@ -33,10 +33,10 @@ export const processPickCard: TSocketProcessor<{ cardId: string; roundId: string
             return;
         }
 
-        await GameRoundRepo.makeMove(roundId, userId, cardId, client);
+        await PlayerMoveRepo.makeMove(roundId, userId, cardId, client);
 
         const playersCount = await UserRepo.countPlayersInGame(round.gameId, client);
-        const movesCount = await GameRoundRepo.countMovesInRound(roundId, client);
+        const movesCount = await PlayerMoveRepo.countMovesInRound(roundId, client);
 
         if (movesCount >= playersCount) {
             await GameRoundRepo.updateStatus(roundId, ERoundStatus.SHOWING, client);
@@ -48,7 +48,7 @@ export const processPickCard: TSocketProcessor<{ cardId: string; roundId: string
                     event: ESocketOutcomeEvent.ROUND_STAGE_CHANGED,
                     data: {
                         status: ERoundStatus.SHOWING,
-                        moves: await GameRoundRepo.getMovesWithCards(roundId, client),
+                        moves: await PlayerMoveRepo.getMovesWithCards(roundId, client),
                     },
                 },
                 true,

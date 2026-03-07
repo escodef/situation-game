@@ -36,7 +36,7 @@ FOREIGN KEY ("owner_id") REFERENCES "users"("id") ON DELETE SET NULL;
 
 CREATE TABLE "sessions" (
     "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    "user_id" UUID REFERENCES "users"("id") ON DELETE CASCADE,
+    "user_id" UUID REFERENCES users(id) ON DELETE CASCADE,
     "access_token" TEXT NOT NULL,
     "refresh_token" TEXT NOT NULL,
     "expires_at" TIMESTAMPTZ NOT NULL,
@@ -46,6 +46,7 @@ CREATE TABLE "sessions" (
 CREATE TABLE "card_packs" (
     "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     "name" TEXT NOT NULL,
+    "creator_id" UUID REFERENCES users(id) ON DELETE SET NULL,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     CONSTRAINT chk_name_len CHECK(length(name) <= 255)
 );
@@ -59,6 +60,7 @@ CREATE TABLE "cards" (
 CREATE TABLE "situation_packs" (
     "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     "name" TEXT NOT NULL,
+    "creator_id" UUID REFERENCES users(id) ON DELETE SET NULL,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     CONSTRAINT chk_name_len CHECK(length(name) <= 255)
 );
