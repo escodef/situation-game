@@ -1,3 +1,5 @@
+BEGIN;
+
 CREATE TABLE "games" (
     "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     "code" TEXT NOT NULL,
@@ -105,22 +107,21 @@ CREATE TABLE "player_moves" (
 );
 
 CREATE TABLE "player_hands" (
-    "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     "game_id" UUID REFERENCES "games"("id") ON DELETE CASCADE,
     "user_id" UUID REFERENCES "users"("id") ON DELETE CASCADE,
-    "card_id" UUID REFERENCES "cards"("id"),
-    UNIQUE("user_id", "card_id", "game_id")
+    "card_id" UUID REFERENCES "cards"("id") ON DELETE CASCADE,
+    PRIMARY KEY ("game_id", "user_id", "card_id")
 );
 
 CREATE TABLE "votes" (
-    "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     "round_id" UUID REFERENCES "game_rounds"("id"),
     "voter_id" UUID REFERENCES "users"("id"),
     "target_user_id" UUID REFERENCES "users"("id"),
-    UNIQUE("round_id", "voter_id"),
+    PRIMARY KEY ("round_id", "voter_id"),
     CONSTRAINT "no_self_voting" CHECK ("voter_id" <> "target_user_id")
 );
 
 CREATE INDEX "idx_users_game_id" ON "users" ("game_id");
-CREATE INDEX "idx_player_hands_game_user" ON "player_hands" ("game_id", "user_id");
 CREATE INDEX "idx_sessions_user_id" ON "sessions" ("user_id");
+
+COMMIT;

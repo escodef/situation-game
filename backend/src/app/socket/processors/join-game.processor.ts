@@ -13,7 +13,7 @@ export const processJoinGame: TSocketProcessor<{ gameId: string }> = async (
 
     const user = await UserRepo.findById(userId);
 
-    if (!user || user.gameId !== gameId) {
+    if (!user || !user.gameId || user.gameId !== gameId) {
         ws.send(
             JSON.stringify({
                 event: ESocketOutcomeEvent.ERROR,
