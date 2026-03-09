@@ -10,7 +10,7 @@ export const UserRepo = {
         return rows[0] || null;
     },
 
-    async findWithGame(userId: string): Promise<IUser | null> {
+    async findWithGame(userId: string, client: Queryable = db): Promise<IUser | null> {
         const sql = `
         SELECT 
             u.id, u.nickname, u.email, u.roles, u.score, u.game_id as "gameId",
@@ -19,7 +19,7 @@ export const UserRepo = {
         LEFT JOIN "games" g ON u.game_id = g.id
         WHERE u.id = $1
     `;
-        const { rows } = await db.query(sql, [userId]);
+        const { rows } = await client.query(sql, [userId]);
         const row = rows[0];
 
         if (!row) return null;
@@ -56,10 +56,10 @@ export const UserRepo = {
         return rows;
     },
 
-    async findById(id: string): Promise<IUser | null> {
+    async findById(id: string, client: Queryable = db): Promise<IUser | null> {
         const sql =
             'SELECT id, nickname, email, roles, age, game_id as "gameId" FROM "users" WHERE id = $1';
-        const { rows } = await db.query<IUser>(sql, [id]);
+        const { rows } = await client.query<IUser>(sql, [id]);
         return rows[0] || null;
     },
 

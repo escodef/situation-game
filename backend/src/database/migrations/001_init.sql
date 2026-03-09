@@ -97,7 +97,7 @@ CREATE TABLE "game_rounds" (
     "ends_at" TIMESTAMPTZ NOT NULL,
     "remaining_ms" INTEGER DEFAULT 0,
     UNIQUE("game_id", "round_number"),
-    CONSTRAINT chk_round_status CHECK (status IN ('PICKING', 'PAUSED', 'VOTING', 'SHOWING'))
+    CONSTRAINT chk_round_status CHECK (status IN ('PICKING', 'PAUSED', 'VOTING', 'SHOWING', 'FINISHED'))
 );
 
 CREATE TABLE "player_moves" (

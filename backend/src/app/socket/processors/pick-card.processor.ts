@@ -17,19 +17,31 @@ export const processPickCard: TSocketProcessor<{ cardId: string; roundId: string
 
         const round = await GameRoundRepo.findById(roundId, client);
         if (!round || round.status !== ERoundStatus.PICKING) {
-            ws.send(JSON.stringify({ event: 'error', data: 'Сейчас нельзя выбирать карты' }));
+            ws.send(
+                JSON.stringify({
+                    event: ESocketOutcomeEvent.ERROR,
+                    data: 'Сейчас нельзя выбирать карты',
+                }),
+            );
             return;
         }
 
         const alreadyMoved = await PlayerMoveRepo.hasUserMoved(roundId, userId, client);
         if (alreadyMoved) {
-            ws.send(JSON.stringify({ event: 'error', data: 'Вы уже сделали ход' }));
+            ws.send(
+                JSON.stringify({ event: ESocketOutcomeEvent.ERROR, data: 'Вы уже сделали ход' }),
+            );
             return;
         }
 
         const cardTaken = await CardPackRepo.takeCardFromHand(userId, cardId, round.gameId, client);
         if (!cardTaken) {
-            ws.send(JSON.stringify({ event: 'error', data: 'Этой карты нет в вашей руке' }));
+            ws.send(
+                JSON.stringify({
+                    event: ESocketOutcomeEvent.ERROR,
+                    data: 'Этой карты нет в вашей руке',
+                }),
+            );
             return;
         }
 
@@ -37,6 +49,16 @@ export const processPickCard: TSocketProcessor<{ cardId: string; roundId: string
 
         const playersCount = await UserRepo.countPlayersInGame(round.gameId, client);
         const movesCount = await PlayerMoveRepo.countMovesInRound(roundId, client);
+
+        websocketInstance.sendToGame(
+            ws,
+            round.gameId,
+            {
+                event: ESocketOutcomeEvent.CARD_PICKED,
+                data: { userId },
+            },
+            true,
+        );
 
         if (movesCount >= playersCount) {
             await GameRoundRepo.updateStatus(roundId, ERoundStatus.SHOWING, client);
@@ -50,16 +72,6 @@ export const processPickCard: TSocketProcessor<{ cardId: string; roundId: string
                         status: ERoundStatus.SHOWING,
                         moves: await PlayerMoveRepo.getMovesWithCards(roundId, client),
                     },
-                },
-                true,
-            );
-        } else {
-            websocketInstance.sendToGame(
-                ws,
-                round.gameId,
-                {
-                    event: ESocketOutcomeEvent.CARD_PICKED,
-                    data: { userId },
                 },
                 true,
             );

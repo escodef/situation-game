@@ -1,4 +1,4 @@
-import { ServerWebSocket } from 'bun';
+import { inspect, ServerWebSocket } from 'bun';
 import { db } from 'src/database/data-source';
 import { CardPackRepo, GameRepo, SituationPackRepo, UserRepo } from 'src/database/repositories';
 import { GameRoundRepo } from 'src/database/repositories/game-round.repo';
@@ -50,8 +50,15 @@ export const processStartGame: TSocketProcessor = async (ws: ServerWebSocket<ISo
             true,
         );
         await client.query('COMMIT');
-    } catch {
+    } catch (error) {
         await client.query('ROLLBACK');
+        console.error(inspect(error));
+        ws.send(
+            JSON.stringify({
+                event: ESocketOutcomeEvent.ERROR,
+                data: 'Ошибка сервера при выборе карты',
+            }),
+        );
     } finally {
         client.release();
     }

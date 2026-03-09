@@ -14,9 +14,11 @@ export const handleRoutes = async (req: Request): Promise<Response> => {
             if (path === '/auth/login' && method === 'POST') {
                 return await loginUser(req);
             }
+
             if (path === '/auth/refresh' && method === 'POST') {
                 return await refreshToken(req);
             }
+
             if (path === '/auth/register' && method === 'POST') {
                 return await registerUser(req);
             }

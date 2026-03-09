@@ -4130,7 +4130,7 @@ export const initSituations = {
 
 export const seedSituations = async () => {
     try {
-        const { rows } = await db.query('SELECT COUNT(*) FROM "situations"');
+        const { rows } = await db.query('SELECT COUNT(*) AS count FROM "situations"');
         if (parseInt(rows[0].count, 10) > 0) {
             return;
         }

@@ -3,7 +3,7 @@ import { seedSituations } from './database/seeders';
 
 async function bootstrap() {
     await seedSituations();
-    createApp();
+    createApp(Number.parseInt(Bun.env.PORT, 10));
 }
 
 bootstrap();

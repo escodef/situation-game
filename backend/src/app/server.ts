@@ -4,12 +4,11 @@ import { handleRoutes } from './app.router';
 import { handleMessage } from './socket/websocket.handler';
 import { WebsocketManager } from './socket/websocket.manager';
 
-export const createApp = () => {
+export const createApp = (port: number) => {
     const wsManager = WebsocketManager.getInstance();
-    const PORT = 3000;
 
     const server = Bun.serve<ISocketData>({
-        port: PORT,
+        port,
         maxRequestBodySize: 1024 * 1024 * 100,
 
         async fetch(req, server) {

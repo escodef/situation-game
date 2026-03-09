@@ -35,7 +35,7 @@ export const SituationPackRepo = {
 
                 if (data.situations.length > 0) {
                     const values = data.situations.map((_, i) => `($1, $${i + 2})`).join(',');
-                    const sql = `INSERT INTO "situations" (card_pack_id, url) VALUES ${values}`;
+                    const sql = `INSERT INTO "situations" (situation_pack_id, text) VALUES ${values}`;
                     await client.query(sql, [packId, ...data.situations]);
                 }
 

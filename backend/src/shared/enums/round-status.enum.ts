@@ -3,4 +3,5 @@ export enum ERoundStatus {
     VOTING = 'VOTING',
     SHOWING = 'SHOWING',
     PAUSED = 'PAUSED',
+    FINISHED = 'FINISHED',
 }

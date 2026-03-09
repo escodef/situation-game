@@ -52,6 +52,8 @@ export const GameRoundRepo = {
                 status, 
                 ends_at as "endsAt"
             FROM "game_rounds"
+            LEFT JOIN "users"
+            ON game_rounds.game_id = users.game_id; 
             WHERE game_id = $1
             ORDER BY round_number DESC
             LIMIT 1
