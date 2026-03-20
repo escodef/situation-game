@@ -1,39 +1,23 @@
+import { Elysia } from 'elysia';
 import { verifyAccessToken } from 'src/shared/utils/jwt.util';
-import type { TokenPayload } from '../interfaces';
 
-export const authenticate = async (
-    req: Request,
-): Promise<{ error: Response; user: TokenPayload }> => {
-    const authHeader = req.headers.get('authorization');
+export const authenticate = new Elysia().derive({ as: 'global' }, ({ headers, set }) => {
+    const authHeader = headers['authorization'];
     const token = authHeader?.split(' ')[1];
 
     if (!token) {
-        return {
-            error: Response.json(
-                {
-                    success: false,
-                    message: 'Unauthorized. No token provided.',
-                },
-                { status: 401 },
-            ),
-            user: null,
-        };
+        set.status = 401;
+        throw new Error('Unauthorized. No token provided.');
     }
 
     const decoded = verifyAccessToken(token);
 
     if (!decoded) {
-        return {
-            error: Response.json(
-                {
-                    success: false,
-                    message: 'Forbidden - Invalid or expired token',
-                },
-                { status: 403 },
-            ),
-            user: null,
-        };
+        set.status = 403;
+        throw new Error('Forbidden - Invalid or expired token');
     }
 
-    return { error: null, user: decoded };
-};
+    return {
+        user: decoded,
+    };
+});
