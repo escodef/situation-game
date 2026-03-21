@@ -1,6 +1,6 @@
 import { UserRepo } from 'src/database/repositories/user.repo';
 
-export const getUser = async (_: Request, userId: string): Promise<Response> => {
+export const getUser = async (userId: string): Promise<Response> => {
     try {
         const user = await UserRepo.findById(userId);
         return Response.json(

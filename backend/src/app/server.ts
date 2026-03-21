@@ -1,61 +1,60 @@
-import Bun from 'bun';
-import { ISocketData, verifyAccessToken } from 'src/shared';
-import { handleRoutes } from './app.router';
+import openapi, { fromTypes } from '@elysiajs/openapi';
+import { Elysia } from 'elysia';
+import { verifyAccessToken } from 'src/shared';
+import { auth, cardpack, game, situationpack, user } from './routers';
 import { handleMessage } from './socket/websocket.handler';
 import { WebsocketManager } from './socket/websocket.manager';
 
 export const createApp = (port: number) => {
     const wsManager = WebsocketManager.getInstance();
 
-    const server = Bun.serve<ISocketData>({
-        port,
-        maxRequestBodySize: 1024 * 1024 * 100,
+    const app = new Elysia()
+        .use(
+            openapi({
+                references: fromTypes(),
+            }),
+        )
+        .use(auth)
+        .use(user)
+        .use(game)
+        .use(situationpack)
+        .use(cardpack)
 
-        async fetch(req, server) {
-            const url = new URL(req.url);
-
-            if (url.pathname === '/ws') {
-                const token = url.searchParams.get('token');
+        .ws('/ws', {
+            beforeHandle({ query, set }) {
+                const token = query.token;
 
                 if (!token) {
-                    return new Response('Token required', { status: 401 });
+                    set.status = 401;
+                    return 'Token required';
                 }
 
                 const payload = verifyAccessToken(token);
-
                 if (!payload) {
-                    return new Response('Invalid or expired token', {
-                        status: 403,
-                    });
+                    set.status = 403;
+                    return 'Invalid or expired token';
                 }
 
-                const success = server.upgrade(req, {
-                    data: {
-                        userId: payload.userId,
-                    },
-                });
+                return {
+                    userId: payload.userId,
+                };
+            },
 
-                if (success) return undefined;
-                return new Response('WebSocket upgrade failed', {
-                    status: 500,
-                });
-            }
-
-            return await handleRoutes(req);
-        },
-
-        websocket: {
             open(ws) {
-                wsManager.handleConnect(ws);
+                wsManager.handleConnect(ws.raw);
             },
             message(ws, message) {
-                handleMessage(ws, message);
+                handleMessage(ws.raw, message);
             },
             close(ws) {
                 wsManager.handleDisconnect(ws.data.userId);
             },
-        },
-    });
+        })
+        .listen({
+            port,
+            maxRequestBodySize: 1024 * 1024 * 100,
+        });
 
-    console.log(`Server is running on port ${server.port}`);
+    console.log(`Server is running on port ${app.server?.port}`);
+    return app;
 };

@@ -1,19 +1,8 @@
 import { UserRepo } from 'src/database/repositories/user.repo';
 import { TokenPayload } from 'src/shared';
-import z from 'zod';
 
-const uuidSchema = z.uuid({ version: 'v4' });
-
-export const getMe = async (_: Request, { userId }: TokenPayload): Promise<Response> => {
+export const getMe = async ({ userId }: TokenPayload): Promise<Response> => {
     try {
-        const validation = uuidSchema.safeParse(userId);
-
-        if (!validation.success) {
-            return Response.json(
-                { success: false, message: 'Invalid UUID format' },
-                { status: 400 },
-            );
-        }
         const user = await UserRepo.findById(userId);
 
         if (!user) {

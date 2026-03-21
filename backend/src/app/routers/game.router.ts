@@ -1,14 +1,14 @@
-import Elysia from 'elysia';
+import Elysia, { t } from 'elysia';
 import { authenticate } from 'src/shared';
-import z from 'zod';
-import { createGame, getGames } from '../controllers/game';
+import { createGame, getGames, joinGame } from '../controllers/game';
 
-export const auth = new Elysia({ prefix: '/game' })
+export const game = new Elysia({ prefix: '/game' })
     .use(authenticate)
     .get('/:page/:take', ({ params: { page, take } }) => getGames(page, take), {
-        params: z.object({
-            page: z.coerce.number(),
-            take: z.coerce.number(),
+        params: t.Object({
+            page: t.Number(),
+            take: t.Number(),
         }),
     })
-    .post('/create', ({ request }) => createGame(request));
+    .post('/join', ({ request, user }) => joinGame(request, user))
+    .post('/create', ({ request, user }) => createGame(request, user));

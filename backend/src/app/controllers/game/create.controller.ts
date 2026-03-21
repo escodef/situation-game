@@ -1,7 +1,6 @@
 import { inspect } from 'bun';
 import { GameRepo } from 'src/database/repositories/game.repo';
 import { generateRandomString, TokenPayload } from 'src/shared';
-import z from 'zod';
 
 const createGameSchema = z.object({
     maxPlayers: z.int().min(2, 'Для игры нужно минимум 2 игрока'),
