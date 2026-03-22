@@ -1,11 +1,11 @@
-import type { ServerWebSocket } from 'bun';
+import { ElysiaWS } from 'elysia/ws';
 import { UserRepo } from 'src/database/repositories';
-import { ESocketOutcomeEvent, ISocketData, TSocketOutcomeMessage } from 'src/shared';
+import { ESocketOutcomeEvent, TSocketOutcomeMessage } from 'src/shared';
 
 export class WebsocketManager {
     private static instance: WebsocketManager;
 
-    private readonly users: Map<string, ServerWebSocket<ISocketData>> = new Map();
+    private readonly users: Map<string, ElysiaWS<any, any>> = new Map();
 
     public static getInstance(): WebsocketManager {
         if (!WebsocketManager.instance) {
@@ -14,7 +14,7 @@ export class WebsocketManager {
         return WebsocketManager.instance;
     }
 
-    public async handleConnect(ws: ServerWebSocket<ISocketData>) {
+    public async handleConnect(ws: ElysiaWS<any, any>) {
         const userId = ws.data.userId;
 
         const existingWs = this.users.get(userId);
@@ -50,11 +50,11 @@ export class WebsocketManager {
         }, 30000);
     }
 
-    public joinGame(ws: ServerWebSocket<ISocketData>, gameId: string): void {
+    public joinGame(ws: ElysiaWS<any, any>, gameId: string): void {
         ws.subscribe(gameId);
     }
 
-    public leaveGame(ws: ServerWebSocket<ISocketData>, gameId: string): void {
+    public leaveGame(ws: ElysiaWS<any, any>, gameId: string): void {
         ws.unsubscribe(gameId);
     }
 
@@ -66,7 +66,7 @@ export class WebsocketManager {
     }
 
     public sendToGame(
-        ws: ServerWebSocket<ISocketData>,
+        ws: ElysiaWS<any, any>,
         gameId: string,
         message: TSocketOutcomeMessage,
         includeSelf: boolean = false,

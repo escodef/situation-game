@@ -19,7 +19,7 @@ export const refreshToken = async (req: Request): Promise<Response> => {
 
         const storedSession = await SessionRepo.findByOldRefresh(oldRefreshToken);
 
-        if (!storedSession || new Date() > storedSession.expiresAt) {
+        if (!storedSession || !storedSession.user?.id || new Date() > storedSession.expiresAt) {
             return Response.json(
                 { success: false, message: 'Session not found or expired' },
                 { status: 401 },

@@ -40,7 +40,7 @@ export const SessionRepo = {
         userId: string;
         accessToken: string;
         refreshToken: string;
-    }): Promise<ISession> {
+    }): Promise<ISession | undefined> {
         const refreshExpires = AUTH_CONFIG.refreshExpiresMs;
         const expiresAt = new Date(Date.now() + refreshExpires);
         const sql = `

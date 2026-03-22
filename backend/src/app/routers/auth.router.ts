@@ -2,7 +2,28 @@ import Elysia, { t } from 'elysia';
 import { loginUser, logoutUser, refreshToken, registerUser } from '../controllers/auth';
 
 export const auth = new Elysia({ prefix: '/auth' })
-    .post('/login', ({ request }) => loginUser(request))
+    .post(
+        '/login',
+        ({ body, cookie: { refreshToken }, set }) =>
+            loginUser({
+                body,
+                cookie: { refreshToken },
+                set,
+            }),
+        {
+            body: t.Object({
+                email: t.String({
+                    format: 'email',
+                    default: (v: string) => v.toLowerCase().trim(),
+                    error: 'Invalid email',
+                }),
+                password: t.String({
+                    minLength: 8,
+                    error: 'Password must be at least 8 characters',
+                }),
+            }),
+        },
+    )
     .post('/register', ({ body }) => registerUser(body), {
         body: t.Object({
             password: t.String({

@@ -14,9 +14,9 @@
     "author": "kostya",
     "main": "src/index.ts",
     "scripts": {
-        "build": "bun build ./src/index.ts --outdir ./dist --target node",
-        "start:dev": "bun --watch src/index.ts",
-        "start": "bun src/index.ts",
+        "build": "bun build src/index.ts --target bun --outdir ./dist",
+        "start:dev": "bun --watch --inspect src/index.ts",
+  		"start": "NODE_ENV=production bun dist/index.js",
         "lint": "bunx biome lint --write",
         "lint:check": "bunx biome lint",
         "format": "bunx biome format --write",

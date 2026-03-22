@@ -81,7 +81,11 @@ export const UserRepo = {
         await client.query(sql, [userId]);
     },
 
-    async create(data: { email: string; passwordHash: string; nickname: string }): Promise<IUser> {
+    async create(data: {
+        email: string;
+        passwordHash: string;
+        nickname: string;
+    }): Promise<IUser | undefined> {
         const sql = `
             INSERT INTO "users" (email, password, nickname, roles)
             VALUES ($1, $2, $3, $4)

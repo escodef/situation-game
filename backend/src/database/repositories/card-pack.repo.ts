@@ -36,7 +36,7 @@ export const CardPackRepo = {
         const sql =
             'DELETE FROM "player_hands" WHERE user_id = $1 AND card_id = $2 AND game_id = $3';
         const { rowCount } = await client.query(sql, [userId, cardId, gameId]);
-        return rowCount > 0;
+        return rowCount ? rowCount > 0 : false;
     },
 
     async createWithCards(

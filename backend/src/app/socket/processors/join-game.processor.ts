@@ -1,11 +1,11 @@
-import { ServerWebSocket } from 'bun';
+import { ElysiaWS } from 'elysia/ws';
 import { UserRepo } from 'src/database/repositories';
-import { ISocketData, TSocketProcessor } from 'src/shared';
+import { TSocketProcessor } from 'src/shared';
 import { ESocketOutcomeEvent } from 'src/shared/enums';
 import { websocketInstance } from '../websocket.manager';
 
 export const processJoinGame: TSocketProcessor<{ gameId: string }> = async (
-    ws: ServerWebSocket<ISocketData>,
+    ws: ElysiaWS<any, any>,
     data: { gameId: string },
 ) => {
     const { userId } = ws.data;

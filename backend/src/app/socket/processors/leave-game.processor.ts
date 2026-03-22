@@ -1,10 +1,10 @@
-import { ServerWebSocket } from 'bun';
+import { ElysiaWS } from 'elysia/ws';
 import { db } from 'src/database/data-source';
 import { UserRepo } from 'src/database/repositories';
-import { ESocketOutcomeEvent, ISocketData, TSocketProcessor } from 'src/shared';
+import { ESocketOutcomeEvent, TSocketProcessor } from 'src/shared';
 import { websocketInstance } from '../websocket.manager';
 
-export const processLeaveGame: TSocketProcessor = async (ws: ServerWebSocket<ISocketData>) => {
+export const processLeaveGame: TSocketProcessor = async (ws: ElysiaWS<any, any>) => {
     const { userId } = ws.data;
 
     const client = await db.connect();
@@ -13,6 +13,10 @@ export const processLeaveGame: TSocketProcessor = async (ws: ServerWebSocket<ISo
         await client.query('BEGIN');
 
         const user = await UserRepo.findWithGame(userId, client);
+
+        if (!user?.gameId) {
+            throw new Error();
+        }
 
         await UserRepo.leaveGame(userId, client);
 

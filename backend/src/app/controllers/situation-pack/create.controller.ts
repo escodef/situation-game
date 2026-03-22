@@ -1,23 +1,25 @@
-import { TokenPayload } from 'src/shared';
-import z from 'zod';
+import { SituationPackRepo } from 'src/database/repositories';
 
-const createSituationPackSchema = z.object({
-    name: z.string().min(3, 'Название слишком короткое').max(100, 'Название слишком длинное'),
-    situations: z.array(z.string()).min(3),
-});
+export const createSituationPack = async ({
+    body,
+    user,
+    set,
+}: {
+    body: any;
+    user: any;
+    set: any;
+}) => {
+    const { name, situations } = body;
 
-export const createSituationPack = async (req: Request, _: TokenPayload): Promise<Response> => {
-    const body = await req.json();
+    const resp = await SituationPackRepo.createWithSituations({
+        name,
+        situations,
+        creatorId: user.userId,
+    });
 
-    const parseResult = createSituationPackSchema.safeParse(body);
-    if (!parseResult.success) {
-        return Response.json(
-            { success: false, error: z.flattenError(parseResult.error) },
-            { status: 400 },
-        );
-    }
-
-    const { name, situations } = parseResult.data;
-
-    return Response.json({ success: true, count: situations.length }, { status: 201 });
+    set.status = 201;
+    return {
+        success: true,
+        situationPackId: resp.id,
+    };
 };

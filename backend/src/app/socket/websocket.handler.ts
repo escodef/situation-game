@@ -1,10 +1,5 @@
-import type { ServerWebSocket } from 'bun';
-import {
-    ESocketIncomeEvent,
-    ESocketOutcomeEvent,
-    ISocketData,
-    ISocketIncomeMessage,
-} from 'src/shared';
+import { ElysiaWS } from 'elysia/ws';
+import { ESocketIncomeEvent, ESocketOutcomeEvent, ISocketIncomeMessage } from 'src/shared';
 import {
     processJoinGame,
     processLeaveGame,
@@ -13,21 +8,13 @@ import {
     processVote,
 } from './processors';
 
-export const handleMessage = async (
-    ws: ServerWebSocket<ISocketData>,
-    messageString: string | Buffer,
-) => {
+export const handleMessage = async (ws: ElysiaWS<any, any>, messageString: any) => {
     try {
-        const str = typeof messageString === 'string' ? messageString : messageString.toString();
+        const message: ISocketIncomeMessage<any> =
+            typeof messageString === 'string' ? JSON.parse(messageString) : messageString;
 
-        const message: ISocketIncomeMessage<any> = JSON.parse(str);
-        if (!message.event) {
-            ws.send(
-                JSON.stringify({
-                    event: ESocketOutcomeEvent.ERROR,
-                    data: 'No event name provided',
-                }),
-            );
+        if (!message?.event) {
+            ws.send({ event: ESocketOutcomeEvent.ERROR, data: 'No event name' });
             return;
         }
 

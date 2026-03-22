@@ -1,5 +1,5 @@
 import openapi, { fromTypes } from '@elysiajs/openapi';
-import { Elysia } from 'elysia';
+import { Elysia, t } from 'elysia';
 import { verifyAccessToken } from 'src/shared';
 import { auth, cardpack, game, situationpack, user } from './routers';
 import { handleMessage } from './socket/websocket.handler';
@@ -21,6 +21,10 @@ export const createApp = (port: number) => {
         .use(cardpack)
 
         .ws('/ws', {
+            query: t.Object({
+                userId: t.String(),
+                token: t.String(),
+            }),
             beforeHandle({ query, set }) {
                 const token = query.token;
 
@@ -41,13 +45,13 @@ export const createApp = (port: number) => {
             },
 
             open(ws) {
-                wsManager.handleConnect(ws.raw);
+                wsManager.handleConnect(ws);
             },
             message(ws, message) {
-                handleMessage(ws.raw, message);
+                handleMessage(ws, message);
             },
             close(ws) {
-                wsManager.handleDisconnect(ws.data.userId);
+                wsManager.handleDisconnect(ws.data.query.userId);
             },
         })
         .listen({

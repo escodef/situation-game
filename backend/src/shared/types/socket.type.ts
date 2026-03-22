@@ -1,6 +1,5 @@
-import { ServerWebSocket } from 'bun';
+import { ElysiaWS } from 'elysia/ws';
 import { ESocketOutcomeEvent } from '../enums';
-import { ISocketData } from '../interfaces/socket.interface';
 
 export type TSocketOutcomeMessage<T = unknown> =
     | {
@@ -12,7 +11,4 @@ export type TSocketOutcomeMessage<T = unknown> =
           errors: string[];
       };
 
-export type TSocketProcessor<T = any> = (
-    ws: ServerWebSocket<ISocketData>,
-    data: T,
-) => void | Promise<void>;
+export type TSocketProcessor<T = any> = (ws: ElysiaWS<any, any>, data: T) => void | Promise<void>;

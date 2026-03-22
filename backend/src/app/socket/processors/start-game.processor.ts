@@ -1,11 +1,12 @@
-import { inspect, ServerWebSocket } from 'bun';
+import { inspect } from 'bun';
+import { ElysiaWS } from 'elysia/ws';
 import { db } from 'src/database/data-source';
 import { CardPackRepo, GameRepo, SituationPackRepo, UserRepo } from 'src/database/repositories';
 import { GameRoundRepo } from 'src/database/repositories/game-round.repo';
-import { ESocketOutcomeEvent, ISocketData, TSocketProcessor } from 'src/shared';
+import { ESocketOutcomeEvent, TSocketProcessor } from 'src/shared';
 import { websocketInstance } from '../websocket.manager';
 
-export const processStartGame: TSocketProcessor = async (ws: ServerWebSocket<ISocketData>) => {
+export const processStartGame: TSocketProcessor = async (ws: ElysiaWS<any, any>) => {
     const client = await db.connect();
 
     try {

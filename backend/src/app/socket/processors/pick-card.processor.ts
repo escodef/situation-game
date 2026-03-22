@@ -1,11 +1,11 @@
-import { ServerWebSocket } from 'bun';
+import { ElysiaWS } from 'elysia/ws';
 import { db } from 'src/database/data-source';
 import { CardPackRepo, GameRoundRepo, PlayerMoveRepo, UserRepo } from 'src/database/repositories';
-import { ERoundStatus, ESocketOutcomeEvent, ISocketData, TSocketProcessor } from 'src/shared';
+import { ERoundStatus, ESocketOutcomeEvent, TSocketProcessor } from 'src/shared';
 import { websocketInstance } from '../websocket.manager';
 
 export const processPickCard: TSocketProcessor<{ cardId: string; roundId: string }> = async (
-    ws: ServerWebSocket<ISocketData>,
+    ws: ElysiaWS<any, any>,
     data: { cardId: string; roundId: string },
 ) => {
     const { userId } = ws.data;

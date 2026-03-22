@@ -140,6 +140,10 @@ export const GameRepo = {
             ]);
             const game = rows[0];
 
+            if (!game) {
+                throw new Error();
+            }
+
             const sitSql = `
                 INSERT INTO "game_situation_packs" (game_id, situation_pack_id)
                 SELECT $1, unnest($2::uuid[])

@@ -1,6 +1,6 @@
 import { SessionRepo } from 'src/database/repositories';
 
-export const logoutUser = async (req: Request): Promise<Response> => {
+export const logoutUser = async (req: Request): Promise<Response | undefined> => {
     try {
         const authHeader = req.headers.get('authorization');
         const token = authHeader?.split(' ')[1];

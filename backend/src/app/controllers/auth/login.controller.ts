@@ -1,66 +1,46 @@
 import { UserRepo } from 'src/database/repositories/user.repo';
-import { dayInMS, generateTokens } from 'src/shared';
-import { z } from 'zod';
+import { generateTokens } from 'src/shared';
 
-const loginSchema = z.object({
-    email: z.email('Invalid email').trim().toLowerCase(),
-    password: z.string().min(8, 'Password must be at least 8 characters'),
-});
+export const loginUser = async ({
+    body,
+    cookie: { refreshToken },
+    set,
+}: {
+    body: any;
+    cookie: any;
+    set: any;
+}) => {
+    const { email, password } = body;
 
-export const loginUser = async (req: Request): Promise<Response> => {
-    try {
-        const body = await req.json();
-        const parseResult = loginSchema.safeParse(body);
+    const user = await UserRepo.findByEmailForAuth(email);
 
-        if (!parseResult.success) {
-            return Response.json(
-                { success: false, error: z.flattenError(parseResult.error) },
-                { status: 400 },
-            );
-        }
-
-        const { email, password } = parseResult.data;
-
-        const user = await UserRepo.findByEmailForAuth(email);
-
-        if (!user) {
-            return Response.json(
-                { success: false, message: 'Invalid credentials' },
-                { status: 401 },
-            );
-        }
-
-        const isPasswordValid = await Bun.password.verify(password, user.password);
-        if (!isPasswordValid) {
-            return Response.json(
-                { success: false, message: 'Invalid credentials' },
-                { status: 401 },
-            );
-        }
-
-        const tokens = generateTokens({
-            userId: user.id,
-        });
-
-        const { password: _, ...userPublicData } = user;
-
-        const response = Response.json(
-            {
-                success: true,
-                user: { ...userPublicData },
-                accessToken: tokens.accessToken,
-            },
-            { status: 200 },
-        );
-
-        response.headers.append(
-            'Set-Cookie',
-            `refreshToken=${tokens.refreshToken}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=${(dayInMS * 30) / 1000}`,
-        );
-
-        return response;
-    } catch (error) {
-        console.error('Login Error:', error);
-        return Response.json({ success: false, message: 'Internal error' }, { status: 500 });
+    if (!user) {
+        set.status = 401;
+        return { success: false, message: 'Invalid credentials' };
     }
+
+    const isPasswordValid = await Bun.password.verify(password, user.password);
+    if (!isPasswordValid) {
+        set.status = 401;
+        return { success: false, message: 'Invalid credentials' };
+    }
+
+    const tokens = generateTokens({ userId: user.id });
+
+    refreshToken.set({
+        value: tokens.refreshToken,
+        httpOnly: true,
+        secure: true,
+        sameSite: 'strict',
+        path: '/',
+        maxAge: 30 * 24 * 60 * 60,
+    });
+
+    const { password: _, ...userPublicData } = user;
+
+    return {
+        success: true,
+        user: userPublicData,
+        accessToken: tokens.accessToken,
+    };
 };

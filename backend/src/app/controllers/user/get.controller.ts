@@ -7,7 +7,7 @@ export const getUser = async (userId: string): Promise<Response> => {
             {
                 success: true,
                 message: 'User fetched successfully',
-                user: user[0],
+                user: user,
             },
             { status: 200 },
         );
