@@ -1,17 +1,21 @@
 import { SessionRepo } from 'src/database/repositories';
 
-export const logoutUser = async (req: Request): Promise<Response | undefined> => {
+export const logoutUser = async ({ headers, cookie: { refreshToken }, error }: any) => {
+    const authHeader = headers['authorization'];
+    const token = authHeader?.split(' ')[1];
+
+    if (!token) {
+        return error(401, { success: false, message: 'Unauthorized' });
+    }
+
     try {
-        const authHeader = req.headers.get('authorization');
-        const token = authHeader?.split(' ')[1];
-
-        if (!token) {
-            return Response.json({ success: false, message: 'Unathorized' }, { status: 401 });
-        }
-
         await SessionRepo.deleteByAccess(token);
-    } catch (error) {
-        console.error('Login Error:', error);
-        return Response.json({ success: false, message: 'Internal error' }, { status: 500 });
+
+        refreshToken.remove();
+
+        return { success: true };
+    } catch (e) {
+        console.error('Logout Error:', e);
+        return error(500, { success: false, message: 'Internal error' });
     }
 };

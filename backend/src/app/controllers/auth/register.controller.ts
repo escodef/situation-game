@@ -1,12 +1,9 @@
 import { UserRepo } from 'src/database/repositories';
+import { RegisterDto } from 'src/shared';
 
-export const registerUser = async (dto: {
-    email: string;
-    password: string;
-    nickname: string;
-}): Promise<Response> => {
+export const registerUser = async (body: RegisterDto): Promise<Response> => {
     try {
-        const { email, password, nickname } = dto;
+        const { email, password, nickname } = body;
         const existing = await UserRepo.findByEmailForAuth(email);
         if (existing) {
             return Response.json({ success: false, message: 'Email exists' }, { status: 409 });

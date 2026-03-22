@@ -1,6 +1,7 @@
 import openapi, { fromTypes } from '@elysiajs/openapi';
-import { Elysia, t } from 'elysia';
-import { verifyAccessToken } from 'src/shared';
+import { Elysia, NotFoundError, t } from 'elysia';
+import { AuthError, verifyAccessToken } from 'src/shared';
+import { BadRequestError } from 'src/shared/errors/bad-request.error';
 import { auth, cardpack, game, situationpack, user } from './routers';
 import { handleMessage } from './socket/websocket.handler';
 import { WebsocketManager } from './socket/websocket.manager';
@@ -9,6 +10,36 @@ export const createApp = (port: number) => {
     const wsManager = WebsocketManager.getInstance();
 
     const app = new Elysia()
+        .error({
+            AUTH_ERROR: AuthError,
+            NOT_FOUND: NotFoundError,
+            BAD_REQUEST: BadRequestError,
+        })
+        .onError(({ code, error, set }) => {
+            const message = error instanceof Error ? error.message : 'Unknown error';
+            console.error(`[Error ${code}]:`, message);
+
+            switch (code) {
+                case 'BAD_REQUEST':
+                    set.status = 400;
+                    return { success: false, message: error.message };
+                case 'AUTH_ERROR':
+                    set.status = 401;
+                    return { success: false, message: error.message };
+                case 'NOT_FOUND':
+                    set.status = 404;
+                    return { success: false, message: error.message };
+                case 'VALIDATION':
+                    set.status = 422;
+                    return { success: false, message: 'Ошибка валидации', details: error.all };
+                case 'INTERNAL_SERVER_ERROR':
+                    set.status = 500;
+                    return { success: false, message: 'Внутренняя ошибка сервера' };
+                default:
+                    set.status = 500;
+                    return { success: false, message: 'Неизвестная ошибка' };
+            }
+        })
         .use(
             openapi({
                 references: fromTypes(),

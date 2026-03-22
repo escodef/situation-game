@@ -2,9 +2,9 @@ import Elysia, { t } from 'elysia';
 import { authenticate } from 'src/shared';
 import { getMe, getUser } from '../controllers/user';
 
-export const user = new Elysia({ prefix: '/user' })
+export const user = new Elysia({ prefix: '/user', detail: { tags: ['Пользователи'] } })
     .use(authenticate)
-    .get('/me', ({ user }) => getMe(user))
+    .get('/me', (ctx) => getMe(ctx))
     .get('/:id', ({ params: { userId } }) => getUser(userId), {
         params: t.Object({ userId: t.String({ format: 'uuid' }) }),
     });

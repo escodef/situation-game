@@ -1,7 +1,17 @@
 import { CardPackRepo } from 'src/database/repositories';
 import { deleteFile, uploadFile } from 'src/s3/util';
+import { TokenPayload } from 'src/shared';
+import { CreateCardPackDto } from 'src/shared/schemas/card-pack.schema';
 
-export const createCardPack = async ({ body, user, set }: { body: any; user: any; set: any }) => {
+export const createCardPack = async ({
+    body,
+    user,
+    set,
+}: {
+    body: CreateCardPackDto;
+    user: TokenPayload;
+    set: any;
+}) => {
     const { name, cards } = body;
     const uploadedKeys: string[] = [];
 

@@ -1,26 +1,21 @@
-import Elysia, { t } from 'elysia';
-import { authenticate } from 'src/shared';
+import Elysia from 'elysia';
+import { authenticate, CreateSituationPackSchema } from 'src/shared';
 import { createSituationPack } from '../controllers/situation-pack/create.controller';
 
-export const situationpack = new Elysia({ prefix: '/situation-pack' }).use(authenticate).post(
-    '/create',
-    ({ body, user, set }) =>
-        createSituationPack({
-            body,
-            user,
-            set,
-        }),
-    {
-        body: t.Object({
-            name: t.String({
-                minLength: 3,
-                maxLength: 100,
-                error: 'Название слишком короткое или длинное',
+export const situationpack = new Elysia({
+    prefix: '/situation-pack',
+    detail: { tags: ['Ситуации'] },
+})
+    .use(authenticate)
+    .post(
+        '/create',
+        ({ body, user, set }) =>
+            createSituationPack({
+                body,
+                user,
+                set,
             }),
-            situations: t.Array(t.String(), {
-                minItems: 3,
-                error: 'Нужно минимум 3 ситуации',
-            }),
-        }),
-    },
-);
+        {
+            body: CreateSituationPackSchema,
+        },
+    );

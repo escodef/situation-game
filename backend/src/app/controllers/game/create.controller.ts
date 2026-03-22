@@ -1,7 +1,15 @@
 import { GameRepo } from 'src/database/repositories/game.repo';
-import { generateRandomString } from 'src/shared';
+import { CreateGameDto, generateRandomString, TokenPayload } from 'src/shared';
 
-export const createGame = async ({ body, user, set }: { body: any; user: any; set: any }) => {
+export const createGame = async ({
+    body,
+    user,
+    set,
+}: {
+    body: CreateGameDto;
+    user: TokenPayload;
+    set: any;
+}) => {
     const code = generateRandomString();
 
     const newGame = await GameRepo.create({

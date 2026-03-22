@@ -1,12 +1,11 @@
 import { UserRepo } from 'src/database/repositories/user.repo';
-import { generateTokens } from 'src/shared';
+import { AuthError, generateTokens, LoginDto } from 'src/shared';
 
 export const loginUser = async ({
     body,
     cookie: { refreshToken },
-    set,
 }: {
-    body: any;
+    body: LoginDto;
     cookie: any;
     set: any;
 }) => {
@@ -15,14 +14,12 @@ export const loginUser = async ({
     const user = await UserRepo.findByEmailForAuth(email);
 
     if (!user) {
-        set.status = 401;
-        return { success: false, message: 'Invalid credentials' };
+        throw new AuthError('Invalid credentials');
     }
 
     const isPasswordValid = await Bun.password.verify(password, user.password);
     if (!isPasswordValid) {
-        set.status = 401;
-        return { success: false, message: 'Invalid credentials' };
+        throw new AuthError('Invalid credentials');
     }
 
     const tokens = generateTokens({ userId: user.id });

@@ -1,17 +1,24 @@
+import { NotFoundError } from 'elysia';
 import { GameRepo, UserRepo } from 'src/database/repositories';
+import { JoinGameDto, TokenPayload } from 'src/shared';
 import { EGameStatus } from 'src/shared/enums';
 
-export const joinGame = async ({ body, user, set }: { body: any; user: any; set: any }) => {
-    const { code, gameId } = body;
-
-    const game = await GameRepo.findByCode(code ?? gameId);
+export const joinGame = async ({
+    body,
+    user,
+    set,
+}: {
+    body: JoinGameDto;
+    user: TokenPayload;
+    set: any;
+}) => {
+    const game = await GameRepo.findByCode('code' in body ? body.code : body.gameId);
 
     if (!game) {
-        set.status = 404;
-        return { success: false, message: 'Игра не найдена' };
+        throw new NotFoundError('Игра не найдена');
     }
 
-    if (gameId && !game.isOpen && !code) {
+    if ('gameId' in body && !game.isOpen && !('code' in body)) {
         set.status = 400;
         return { success: false, message: 'В закрытую игру нужен код' };
     }

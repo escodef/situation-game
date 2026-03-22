@@ -1,33 +1,25 @@
-import { UserRepo } from 'src/database/repositories/user.repo';
-import { TokenPayload } from 'src/shared';
+import { UserRepo } from 'src/database/repositories';
 
-export const getMe = async ({ userId }: TokenPayload): Promise<Response> => {
+export const getMe = async ({ user, error }: any) => {
     try {
-        const user = await UserRepo.findById(userId);
+        const userData = await UserRepo.findById(user.id);
 
-        if (!user) {
-            return Response.json(
-                { success: false, message: 'No user found with this id' },
-                { status: 400 },
-            );
+        if (!userData) {
+            return error(400, {
+                success: false,
+                message: 'Пользователь с таким id не найден',
+            });
         }
 
-        return Response.json(
-            {
-                success: true,
-                message: 'User fetched successfully',
-                user,
-            },
-            { status: 200 },
-        );
-    } catch (error) {
-        console.error('getProfile() Error:', error);
-        return Response.json(
-            {
-                success: false,
-                message: 'Internal server error',
-            },
-            { status: 500 },
-        );
+        return {
+            success: true,
+            user: userData,
+        };
+    } catch (e) {
+        console.error('getProfile() Error:', e);
+        return error(500, {
+            success: false,
+            message: 'Internal server error',
+        });
     }
 };

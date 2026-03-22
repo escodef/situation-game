@@ -2,57 +2,47 @@ import { SessionRepo } from 'src/database/repositories';
 import { dayInMS } from 'src/shared';
 import { generateTokens, verifyRefreshToken } from 'src/shared/utils/jwt.util';
 
-export const refreshToken = async (req: Request): Promise<Response> => {
-    try {
-        const cookieHeader = req.headers.get('cookie') || '';
-        const cookies = Object.fromEntries(cookieHeader.split('; ').map((c) => c.split('=')));
-        const oldRefreshToken = cookies['refreshToken'];
+export const refreshToken = async ({ cookie: { refreshToken }, error }: any) => {
+    const oldRefreshToken = refreshToken.value;
 
-        if (!oldRefreshToken) {
-            return Response.json({ success: false, message: 'No token' }, { status: 401 });
-        }
-
-        const decoded = verifyRefreshToken(oldRefreshToken);
-        if (!decoded || !decoded.userId) {
-            return Response.json({ success: false, message: 'Invalid token' }, { status: 401 });
-        }
-
-        const storedSession = await SessionRepo.findByOldRefresh(oldRefreshToken);
-
-        if (!storedSession || !storedSession.user?.id || new Date() > storedSession.expiresAt) {
-            return Response.json(
-                { success: false, message: 'Session not found or expired' },
-                { status: 401 },
-            );
-        }
-
-        await SessionRepo.deleteByRefresh(oldRefreshToken);
-
-        const tokens = generateTokens({
-            userId: storedSession.user.id,
-        });
-
-        await SessionRepo.create({
-            userId: storedSession.user.id,
-            accessToken: tokens.accessToken,
-            refreshToken: tokens.refreshToken,
-        });
-
-        const headers = new Headers();
-        headers.append(
-            'Set-Cookie',
-            `refreshToken=${tokens.refreshToken}; HttpOnly; Secure; SameSite=Strict; Max-Age=${(7 * dayInMS) / 1000}; Path=/`,
-        );
-
-        return Response.json(
-            {
-                success: true,
-                accessToken: tokens.accessToken,
-            },
-            { status: 200, headers },
-        );
-    } catch (error) {
-        console.error('Refresh Error:', error);
-        return Response.json({ success: false, message: 'Internal error' }, { status: 500 });
+    if (!oldRefreshToken) {
+        return error(401, { success: false, message: 'No token' });
     }
+
+    const decoded = verifyRefreshToken(oldRefreshToken);
+    if (!decoded || !decoded.userId) {
+        return error(401, { success: false, message: 'Invalid token' });
+    }
+
+    const storedSession = await SessionRepo.findByOldRefresh(oldRefreshToken);
+
+    if (!storedSession || !storedSession.user?.id || new Date() > storedSession.expiresAt) {
+        return error(401, { success: false, message: 'Session not found or expired' });
+    }
+
+    await SessionRepo.deleteByRefresh(oldRefreshToken);
+
+    const tokens = generateTokens({
+        userId: storedSession.user.id,
+    });
+
+    await SessionRepo.create({
+        userId: storedSession.user.id,
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+    });
+
+    refreshToken.set({
+        value: tokens.refreshToken,
+        httpOnly: true,
+        secure: true,
+        sameSite: 'strict',
+        maxAge: (7 * dayInMS) / 1000,
+        path: '/',
+    });
+
+    return {
+        success: true,
+        accessToken: tokens.accessToken,
+    };
 };
