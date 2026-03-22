@@ -4,7 +4,7 @@ import { createSituationPack } from '../controllers/situation-pack/create.contro
 
 export const situationpack = new Elysia({
     prefix: '/situation-pack',
-    detail: { tags: ['Ситуации'] },
+    detail: { tags: ['Ситуации'], security: [{ bearerAuth: [] }] },
 })
     .use(authenticate)
     .post(

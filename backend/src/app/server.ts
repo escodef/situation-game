@@ -43,6 +43,18 @@ export const createApp = (port: number) => {
         .use(
             openapi({
                 references: fromTypes(),
+                documentation: {
+                    info: { title: 'Situation Game API', version: '1.0.0' },
+                    components: {
+                        securitySchemes: {
+                            bearerAuth: {
+                                type: 'http',
+                                scheme: 'bearer',
+                                bearerFormat: 'JWT',
+                            },
+                        },
+                    },
+                },
             }),
         )
         .use(auth)
