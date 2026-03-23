@@ -54,7 +54,7 @@ CREATE TABLE "card_packs" (
 CREATE TABLE "cards" (
     "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     "url" TEXT NOT NULL,
-    "card_pack_id" UUID REFERENCES card_packs(id)
+    "card_pack_id" UUID REFERENCES card_packs(id) ON DELETE CASCADE
 );
 
 CREATE TABLE "situation_packs" (
@@ -70,10 +70,9 @@ CREATE TABLE "situations" (
     "text" TEXT NOT NULL,
     "is_adult" BOOLEAN DEFAULT FALSE,
     "category" TEXT,
-    "situation_pack_id" UUID REFERENCES situation_packs(id),
+    "situation_pack_id" UUID REFERENCES situation_packs(id) ON DELETE CASCADE,
     CONSTRAINT chk_text_len CHECK(length(text) <= 500),
     CONSTRAINT chk_category_len CHECK(length(category) <= 40)
-
 );
 
 CREATE TABLE "game_card_packs" (

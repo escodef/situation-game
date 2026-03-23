@@ -1,8 +1,8 @@
 import { DeleteObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 import { s3Client } from './client';
 
-const Bucket = process.env.S3_BUCKET_NAME;
-const Endpoint = process.env.S3_ENDPOINT;
+const Bucket = Bun.env.S3_BUCKET_NAME;
+const Endpoint = Bun.env.S3_ENDPOINT;
 
 export async function uploadFile(key: string, body: Buffer | Uint8Array, contentType: string) {
     const command = new PutObjectCommand({
@@ -20,7 +20,7 @@ export async function uploadFile(key: string, body: Buffer | Uint8Array, content
 }
 export async function deleteFile(key: string) {
     const command = new DeleteObjectCommand({
-        Bucket: process.env.S3_BUCKET_NAME,
+        Bucket: Bun.env.S3_BUCKET_NAME,
         Key: key,
     });
     return await s3Client.send(command);

@@ -15,6 +15,8 @@ export const getGames = async ({
 
         const totalPages = Math.ceil(total / take);
 
+        set.status = 200;
+
         return {
             success: true,
             data: games,

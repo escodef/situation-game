@@ -1,0 +1,112 @@
+asyncapi: 3.0.0
+info:
+  title: Situation Game WebSocket API
+  version: 1.0.0
+  description: API для управления игровым процессом в реальном времени.
+
+servers:
+  local:
+    host: localhost:3000
+    protocol: ws
+    pathname: /ws
+
+channels:
+  gameRoot:
+    address: /ws
+    messages:
+      joinGame:
+        $ref: "#/components/messages/joinGame"
+      startGame:
+        $ref: "#/components/messages/startGame"
+      playerJoined:
+        $ref: "#/components/messages/playerJoined"
+      errorEvent:
+        $ref: "#/components/messages/errorEvent"
+    bindings:
+      ws:
+        query:
+          type: object
+          properties:
+            userId:
+              type: string
+            token:
+              type: string
+          required: [userId, token]
+
+operations:
+  receiveMessages:
+    action: receive
+    channel:
+      $ref: "#/channels/gameRoot"
+    messages:
+      - $ref: "#/components/messages/joinGame"
+      - $ref: "#/components/messages/startGame"
+
+  sendEvents:
+    action: send
+    channel:
+      $ref: "#/channels/gameRoot"
+    messages:
+      - $ref: "#/components/messages/playerJoined"
+      - $ref: "#/components/messages/errorEvent"
+
+components:
+  messages:
+    joinGame:
+      name: JOIN_GAME
+      summary: Игрок запрашивает вход в комнату
+      payload:
+        type: object
+        properties:
+          event:
+            const: JOIN_GAME
+          data:
+            type: object
+            properties:
+              gameId:
+                type: string
+            required: [gameId]
+
+    startGame:
+      name: START_GAME
+      summary: Запуск начала игры
+      payload:
+        type: object
+        properties:
+          event:
+            const: START_GAME
+          data:
+            type: object
+
+    playerJoined:
+      name: PLAYER_JOINED
+      summary: Уведомление о том, что игрок подключился
+      payload:
+        type: object
+        properties:
+          event:
+            const: PLAYER_JOINED
+          data:
+            $ref: "#/components/schemas/PlayerInfo"
+
+    errorEvent:
+      name: ERROR
+      summary: Сообщение об ошибке
+      payload:
+        type: object
+        properties:
+          event:
+            const: ERROR
+          data:
+            type: string
+
+  schemas:
+    PlayerInfo:
+      type: object
+      properties:
+        userId:
+          type: string
+        nickname:
+          type: string
+        score:
+          type: number

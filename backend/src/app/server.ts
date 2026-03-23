@@ -1,4 +1,5 @@
 import openapi, { fromTypes } from '@elysiajs/openapi';
+import staticPlugin from '@elysiajs/static';
 import { Elysia, NotFoundError, t } from 'elysia';
 import { AuthError, verifyAccessToken } from 'src/shared';
 import { BadRequestError } from 'src/shared/errors/bad-request.error';
@@ -40,6 +41,8 @@ export const createApp = (port: number) => {
                     return { success: false, message: 'Неизвестная ошибка' };
             }
         })
+        .use(staticPlugin({ assets: 'docs', prefix: '/asyncapi-static' }))
+        .get('/asyncapi', () => Bun.file('./docs/index.html'))
         .use(
             openapi({
                 references: fromTypes(),
@@ -62,7 +65,6 @@ export const createApp = (port: number) => {
         .use(game)
         .use(situationpack)
         .use(cardpack)
-
         .ws('/ws', {
             query: t.Object({
                 userId: t.String(),
