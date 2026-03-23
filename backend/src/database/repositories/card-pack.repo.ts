@@ -1,7 +1,38 @@
-import { Queryable } from 'src/shared/types/pg.types';
+import type { ICardPack } from 'src/shared';
+import type { Queryable } from 'src/shared/types/pg.types';
 import { db } from '../data-source';
 
 export const CardPackRepo = {
+    async findAll(
+        page: number,
+        take: number,
+        client: Queryable = db,
+    ): Promise<{ items: ICardPack[]; total: number }> {
+        const offset = (page - 1) * take;
+
+        const sql = `
+            SELECT 
+                id, 
+                name, 
+                created_at as "createdAt", 
+                creator_id as "creatorId",
+                COUNT(*) OVER() as total_count
+            FROM "card_packs"
+            ORDER BY created_at DESC
+            LIMIT $1 OFFSET $2
+        `;
+
+        const { rows } = await client.query(sql, [take, offset]);
+
+        return {
+            items: rows.map((row) => {
+                const { total_count, ...item } = row;
+                return item;
+            }),
+            total: rows.length > 0 ? parseInt(rows[0].total_count, 10) : 0,
+        };
+    },
+
     async distributeInitialCards(gameId: string, client: Queryable = db): Promise<void> {
         const sql = `
             INSERT INTO "player_hands" (game_id, user_id, card_id)
@@ -25,18 +56,6 @@ export const CardPackRepo = {
             WHERE sc.card_idx <= (SELECT total FROM player_count) * 5;
         `;
         await client.query(sql, [gameId]);
-    },
-
-    async takeCardFromHand(
-        userId: string,
-        cardId: string,
-        gameId: string,
-        client: Queryable = db,
-    ): Promise<boolean> {
-        const sql =
-            'DELETE FROM "player_hands" WHERE user_id = $1 AND card_id = $2 AND game_id = $3';
-        const { rowCount } = await client.query(sql, [userId, cardId, gameId]);
-        return rowCount ? rowCount > 0 : false;
     },
 
     async createWithCards(

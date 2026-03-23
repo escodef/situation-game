@@ -1,4 +1,4 @@
-import { ESocketIncomeEvent } from '../enums';
+import type { ESocketIncomeEvent } from '../enums';
 
 export interface ISocketIncomeMessage<T = unknown> {
     event: ESocketIncomeEvent;

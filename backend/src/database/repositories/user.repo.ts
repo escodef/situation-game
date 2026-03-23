@@ -1,6 +1,6 @@
 import { EUserRole } from 'src/shared/enums/role.enum';
 import type { IUser } from 'src/shared/interfaces/user.interface';
-import { Queryable } from 'src/shared/types/pg.types';
+import type { Queryable } from 'src/shared/types/pg.types';
 import { db } from '../data-source';
 
 export const UserRepo = {

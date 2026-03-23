@@ -7,12 +7,12 @@ export const game = new Elysia({
     detail: { tags: ['Игры'], security: [{ bearerAuth: [] }] },
 })
     .use(authenticate)
-    .get('/:page/:take', ({ params: { page, take } }) => getGames(page, take), {
-        params: GetGamesSchema,
+    .get('/', (ctx) => getGames(ctx), {
+        query: GetGamesSchema,
     })
-    .post('/join', ({ body, user, set }) => joinGame({ body, user, set }), {
+    .post('/join', (ctx) => joinGame(ctx), {
         body: JoinGameSchema,
     })
-    .post('/create', ({ body, user, set }) => createGame({ body, user, set }), {
+    .post('/', (ctx) => createGame(ctx), {
         body: CreateGameSchema,
     });

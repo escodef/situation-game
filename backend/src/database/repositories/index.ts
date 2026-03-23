@@ -1,6 +1,7 @@
 export * from './card-pack.repo';
 export * from './game.repo';
 export * from './game-round.repo';
+export * from './player-hand.repo';
 export * from './player-move.repo';
 export * from './session.repo';
 export * from './situation-pack.repo';

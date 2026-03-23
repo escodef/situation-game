@@ -1,7 +1,7 @@
 import type { EGameStatus } from '../enums';
-import { ICardPack } from './card-pack.interface';
-import { IGameRound } from './game-round.interface';
-import { ISituationPack } from './situation-pack.interface';
+import type { ICardPack } from './card-pack.interface';
+import type { IGameRound } from './game-round.interface';
+import type { ISituationPack } from './situation-pack.interface';
 import type { IUser } from './user.interface';
 
 export interface IGame {

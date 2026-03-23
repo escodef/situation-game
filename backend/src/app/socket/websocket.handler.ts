@@ -1,5 +1,5 @@
-import { ElysiaWS } from 'elysia/ws';
-import { ESocketIncomeEvent, ESocketOutcomeEvent, ISocketIncomeMessage } from 'src/shared';
+import type { ElysiaWS } from 'elysia/ws';
+import { ESocketIncomeEvent, ESocketOutcomeEvent, type ISocketIncomeMessage } from 'src/shared';
 import {
     processJoinGame,
     processLeaveGame,

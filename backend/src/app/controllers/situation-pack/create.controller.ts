@@ -1,5 +1,5 @@
 import { SituationPackRepo } from 'src/database/repositories';
-import { CreateSituationPackDto, TokenPayload } from 'src/shared';
+import type { CreateSituationPackDto, TokenPayload } from 'src/shared';
 
 export const createSituationPack = async ({
     body,

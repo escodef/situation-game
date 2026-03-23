@@ -1,5 +1,5 @@
 import { UserRepo } from 'src/database/repositories';
-import { RegisterDto } from 'src/shared';
+import type { RegisterDto } from 'src/shared';
 
 export const registerUser = async (body: RegisterDto): Promise<Response> => {
     try {

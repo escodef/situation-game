@@ -1,7 +1,7 @@
-import { ElysiaWS } from 'elysia/ws';
+import type { ElysiaWS } from 'elysia/ws';
 import { db } from 'src/database/data-source';
-import { CardPackRepo, GameRoundRepo, PlayerMoveRepo, UserRepo } from 'src/database/repositories';
-import { ERoundStatus, ESocketOutcomeEvent, TSocketProcessor } from 'src/shared';
+import { GameRoundRepo, PlayerHandRepo, PlayerMoveRepo, UserRepo } from 'src/database/repositories';
+import { ERoundStatus, ESocketOutcomeEvent, type TSocketProcessor } from 'src/shared';
 import { websocketInstance } from '../websocket.manager';
 
 export const processPickCard: TSocketProcessor<{ cardId: string; roundId: string }> = async (
@@ -34,7 +34,13 @@ export const processPickCard: TSocketProcessor<{ cardId: string; roundId: string
             return;
         }
 
-        const cardTaken = await CardPackRepo.takeCardFromHand(userId, cardId, round.gameId, client);
+        const cardTaken = await PlayerHandRepo.takeCardFromHand(
+            userId,
+            cardId,
+            round.gameId,
+            client,
+        );
+
         if (!cardTaken) {
             ws.send(
                 JSON.stringify({
@@ -55,7 +61,7 @@ export const processPickCard: TSocketProcessor<{ cardId: string; roundId: string
             round.gameId,
             {
                 event: ESocketOutcomeEvent.CARD_PICKED,
-                data: { userId },
+                data: { userId, cardId },
             },
             true,
         );

@@ -1,5 +1,5 @@
-import { ERoundStatus, IGameRound } from 'src/shared';
-import { Queryable } from 'src/shared/types/pg.types';
+import type { ERoundStatus, IGameRound } from 'src/shared';
+import type { Queryable } from 'src/shared/types/pg.types';
 import { db } from '../data-source';
 
 export const GameRoundRepo = {

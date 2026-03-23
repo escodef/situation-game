@@ -1,4 +1,4 @@
-import { Static, t } from 'elysia';
+import { type Static, t } from 'elysia';
 
 export const CreateSituationPackSchema = t.Object({
     name: t.String({
@@ -12,4 +12,10 @@ export const CreateSituationPackSchema = t.Object({
     }),
 });
 
+export const GetSituationPacksSchema = t.Object({
+    page: t.Number({ minimum: 1 }),
+    take: t.Number({ maximum: 20 }),
+});
+
 export type CreateSituationPackDto = Static<typeof CreateSituationPackSchema>;
+export type GetSituationPacksDto = Static<typeof GetSituationPacksSchema>;

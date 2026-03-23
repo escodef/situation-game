@@ -1,5 +1,5 @@
-import { ElysiaWS } from 'elysia/ws';
-import { ESocketOutcomeEvent } from '../enums';
+import type { ElysiaWS } from 'elysia/ws';
+import type { ESocketOutcomeEvent } from '../enums';
 
 export type TSocketOutcomeMessage<T = unknown> =
     | {

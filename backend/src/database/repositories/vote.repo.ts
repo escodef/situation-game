@@ -1,5 +1,5 @@
-import { IVote } from 'src/shared';
-import { Queryable } from 'src/shared/types/pg.types';
+import type { IVote } from 'src/shared';
+import type { Queryable } from 'src/shared/types/pg.types';
 import { db } from '../data-source';
 
 export const VoteRepo = {

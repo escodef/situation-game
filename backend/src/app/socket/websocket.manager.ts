@@ -1,6 +1,6 @@
-import { ElysiaWS } from 'elysia/ws';
+import type { ElysiaWS } from 'elysia/ws';
 import { UserRepo } from 'src/database/repositories';
-import { ESocketOutcomeEvent, TSocketOutcomeMessage } from 'src/shared';
+import { ESocketOutcomeEvent, type TSocketOutcomeMessage } from 'src/shared';
 
 export class WebsocketManager {
     private static instance: WebsocketManager;

@@ -1,5 +1,5 @@
 import type { IGame } from 'src/shared/interfaces/game.interface';
-import { Queryable } from 'src/shared/types/pg.types';
+import type { Queryable } from 'src/shared/types/pg.types';
 import { db } from '../data-source';
 
 export const GameRepo = {

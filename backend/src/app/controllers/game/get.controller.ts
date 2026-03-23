@@ -1,6 +1,13 @@
 import { GameRepo } from 'src/database/repositories';
+import type { GetGamesDto } from 'src/shared';
 
-export const getGames = async (page: number, take: number): Promise<Response> => {
+export const getGames = async ({
+    query: { page, take },
+    set,
+}: {
+    query: GetGamesDto;
+    set: any;
+}) => {
     try {
         const offset = (page - 1) * take;
 
@@ -8,20 +15,17 @@ export const getGames = async (page: number, take: number): Promise<Response> =>
 
         const totalPages = Math.ceil(total / take);
 
-        return Response.json(
-            {
-                success: true,
-                data: games,
-                meta: {
-                    totalCount: total,
-                    totalPages,
-                    currentPage: page,
-                    hasPrepage: page > 1,
-                    hasNextPage: page < totalPages,
-                },
+        return {
+            success: true,
+            data: games,
+            meta: {
+                totalCount: total,
+                totalPages,
+                currentPage: page,
+                hasPrepage: page > 1,
+                hasNextPage: page < totalPages,
             },
-            { status: 200 },
-        );
+        };
     } catch (error) {
         console.error('getGames() Error:', error);
         return Response.json(

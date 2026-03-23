@@ -1,5 +1,5 @@
 import { UserRepo } from 'src/database/repositories/user.repo';
-import { AuthError, generateTokens, LoginDto } from 'src/shared';
+import { AuthError, generateTokens, type LoginDto } from 'src/shared';
 
 export const loginUser = async ({
     body,

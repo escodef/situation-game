@@ -1,8 +1,38 @@
-import { ISituation } from 'src/shared';
-import { Queryable } from 'src/shared/types/pg.types';
+import type { ISituation, ISituationPack } from 'src/shared';
+import type { Queryable } from 'src/shared/types/pg.types';
 import { db } from '../data-source';
 
 export const SituationPackRepo = {
+    async findAll(
+        page: number,
+        take: number,
+        client: Queryable = db,
+    ): Promise<{ items: ISituationPack[]; total: number }> {
+        const offset = (page - 1) * take;
+
+        const sql = `
+            SELECT 
+                id, 
+                name, 
+                created_at as "createdAt", 
+                creator_id as "creatorId",
+                COUNT(*) OVER() as total_count
+            FROM "situation_packs"
+            ORDER BY created_at DESC
+            LIMIT $1 OFFSET $2
+        `;
+
+        const { rows } = await client.query(sql, [take, offset]);
+
+        return {
+            items: rows.map((row) => {
+                const { total_count, ...item } = row;
+                return item;
+            }),
+            total: rows.length > 0 ? parseInt(rows[0].total_count, 10) : 0,
+        };
+    },
+
     async getRandomForGame(gameId: string, client: Queryable = db): Promise<ISituation> {
         const sql = `
             SELECT s.id, s.text 

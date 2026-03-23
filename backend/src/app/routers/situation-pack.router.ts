@@ -1,5 +1,6 @@
 import Elysia from 'elysia';
-import { authenticate, CreateSituationPackSchema } from 'src/shared';
+import { authenticate, CreateSituationPackSchema, GetSituationPacksSchema } from 'src/shared';
+import { getAllSituationPacks } from '../controllers/situation-pack';
 import { createSituationPack } from '../controllers/situation-pack/create.controller';
 
 export const situationpack = new Elysia({
@@ -7,15 +8,9 @@ export const situationpack = new Elysia({
     detail: { tags: ['Ситуации'], security: [{ bearerAuth: [] }] },
 })
     .use(authenticate)
-    .post(
-        '/create',
-        ({ body, user, set }) =>
-            createSituationPack({
-                body,
-                user,
-                set,
-            }),
-        {
-            body: CreateSituationPackSchema,
-        },
-    );
+    .get('/', (ctx) => getAllSituationPacks(ctx), {
+        query: GetSituationPacksSchema,
+    })
+    .post('/', (ctx) => createSituationPack(ctx), {
+        body: CreateSituationPackSchema,
+    });

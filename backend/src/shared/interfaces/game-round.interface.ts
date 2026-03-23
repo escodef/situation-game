@@ -1,6 +1,6 @@
-import { ERoundStatus } from '../enums/round-status.enum';
-import { ISituation } from './situation.interface';
-import { IUser } from './user.interface';
+import type { ERoundStatus } from '../enums/round-status.enum';
+import type { ISituation } from './situation.interface';
+import type { IUser } from './user.interface';
 
 export interface IGameRound {
     id: string;

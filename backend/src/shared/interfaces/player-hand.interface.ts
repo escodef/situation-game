@@ -1,4 +1,4 @@
-import { ICard } from './card.interface';
+import type { ICard } from './card.interface';
 
 export interface IPlayerHand {
     gameId: string;

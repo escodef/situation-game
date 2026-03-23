@@ -1,7 +1,7 @@
-import { ElysiaWS } from 'elysia/ws';
+import type { ElysiaWS } from 'elysia/ws';
 import { db } from 'src/database/data-source';
 import { UserRepo } from 'src/database/repositories';
-import { ESocketOutcomeEvent, TSocketProcessor } from 'src/shared';
+import { ESocketOutcomeEvent, type TSocketProcessor } from 'src/shared';
 import { websocketInstance } from '../websocket.manager';
 
 export const processLeaveGame: TSocketProcessor = async (ws: ElysiaWS<any, any>) => {

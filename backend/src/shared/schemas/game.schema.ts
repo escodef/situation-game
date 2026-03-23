@@ -1,4 +1,4 @@
-import { Static, t } from 'elysia';
+import { type Static, t } from 'elysia';
 
 export const JoinGameSchema = t.Intersect([
     t.Union([t.Object({ code: t.String() }), t.Object({ gameId: t.String() })], {

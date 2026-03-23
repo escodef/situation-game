@@ -1,6 +1,6 @@
 import { sign, verify } from 'jsonwebtoken';
 import { AUTH_CONFIG } from '../constants';
-import { TokenPayload } from '../interfaces';
+import type { TokenPayload } from '../interfaces';
 
 export const generateTokens = (payload: TokenPayload) => {
     const accessToken = sign(payload, AUTH_CONFIG.accessSecret, {

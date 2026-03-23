@@ -1,8 +1,8 @@
 import type { EUserRole } from '../enums/role.enum';
-import { IGame } from './game.interface';
-import { IPlayerHand } from './player-hand.interface';
+import type { IGame } from './game.interface';
+import type { IPlayerHand } from './player-hand.interface';
 import type { ISession } from './session.interface';
-import { IVote } from './vote.interface';
+import type { IVote } from './vote.interface';
 
 export interface IUser {
     id: string;

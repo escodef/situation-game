@@ -1,6 +1,6 @@
 import { NotFoundError } from 'elysia';
 import { GameRepo, UserRepo } from 'src/database/repositories';
-import { JoinGameDto, TokenPayload } from 'src/shared';
+import type { JoinGameDto, TokenPayload } from 'src/shared';
 import { EGameStatus } from 'src/shared/enums';
 
 export const joinGame = async ({

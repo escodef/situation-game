@@ -1,6 +1,6 @@
-import { ElysiaWS } from 'elysia/ws';
+import type { ElysiaWS } from 'elysia/ws';
 import { UserRepo } from 'src/database/repositories';
-import { TSocketProcessor } from 'src/shared';
+import type { TSocketProcessor } from 'src/shared';
 import { ESocketOutcomeEvent } from 'src/shared/enums';
 import { websocketInstance } from '../websocket.manager';
 

@@ -1,8 +1,8 @@
 import { inspect } from 'bun';
-import { ElysiaWS } from 'elysia/ws';
+import type { ElysiaWS } from 'elysia/ws';
 import { db } from 'src/database/data-source';
 import { GameRoundRepo, UserRepo, VoteRepo } from 'src/database/repositories';
-import { ERoundStatus, ESocketOutcomeEvent, TSocketProcessor } from 'src/shared';
+import { ERoundStatus, ESocketOutcomeEvent, type TSocketProcessor } from 'src/shared';
 import { websocketInstance } from '../websocket.manager';
 
 export const processVote: TSocketProcessor<{ targetUserId: string }> = async (

@@ -1,5 +1,5 @@
-import { IPlayerMove } from 'src/shared';
-import { Queryable } from 'src/shared/types/pg.types';
+import type { IPlayerMove } from 'src/shared';
+import type { Queryable } from 'src/shared/types/pg.types';
 import { db } from '../data-source';
 
 export const PlayerMoveRepo = {
@@ -30,7 +30,7 @@ export const PlayerMoveRepo = {
             JOIN "game_rounds" gr ON ph.game_id = gr.game_id
             WHERE gr.id = $1 
             AND ph.user_id NOT IN (SELECT user_id FROM "player_moves" WHERE round_id = $1)
-            DISTINCT ON (ph.user_id) -- Берем только одну карту для каждого
+            DISTINCT ON (ph.user_id)
         `;
         await client.query(sql, [roundId]);
     },

@@ -1,5 +1,5 @@
 import { GameRepo } from 'src/database/repositories/game.repo';
-import { CreateGameDto, generateRandomString, TokenPayload } from 'src/shared';
+import { type CreateGameDto, generateRandomString, type TokenPayload } from 'src/shared';
 
 export const createGame = async ({
     body,
