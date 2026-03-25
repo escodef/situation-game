@@ -1,5 +1,5 @@
-import { UserRepo } from 'src/database/repositories/user.repo';
-import { AuthError, generateTokens, type LoginDto } from 'src/shared';
+import { UserRepo } from 'src/database/repositories';
+import { generateTokens, type LoginDto, UnauthorizedError } from 'src/shared';
 
 export const loginUser = async ({
     body,
@@ -14,12 +14,12 @@ export const loginUser = async ({
     const user = await UserRepo.findByEmailForAuth(email);
 
     if (!user) {
-        throw new AuthError('Invalid credentials');
+        throw new UnauthorizedError('Invalid credentials');
     }
 
     const isPasswordValid = await Bun.password.verify(password, user.password);
     if (!isPasswordValid) {
-        throw new AuthError('Invalid credentials');
+        throw new UnauthorizedError('Invalid credentials');
     }
 
     const tokens = generateTokens({ userId: user.id });

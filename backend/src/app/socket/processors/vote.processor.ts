@@ -1,4 +1,3 @@
-import { inspect } from 'bun';
 import type { ElysiaWS } from 'elysia/ws';
 import { db } from 'src/database/data-source';
 import { GameRoundRepo, UserRepo, VoteRepo } from 'src/database/repositories';
@@ -62,11 +61,11 @@ export const processVote: TSocketProcessor<{ targetUserId: string }> = async (
         }
     } catch (error) {
         await client.query('ROLLBACK');
-        console.error(inspect(error));
+        console.error('processVote() error:', error);
         ws.send(
             JSON.stringify({
                 event: ESocketOutcomeEvent.ERROR,
-                data: 'Ошибка сервера при выборе карты',
+                data: 'Ошибка сервера при голосовании',
             }),
         );
     } finally {

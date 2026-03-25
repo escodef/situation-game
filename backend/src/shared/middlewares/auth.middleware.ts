@@ -1,13 +1,13 @@
 import { Elysia } from 'elysia';
 import { verifyAccessToken } from 'src/shared/utils/jwt.util';
+import { UnauthorizedError } from '../errors';
 
 export const authenticate = new Elysia().derive({ as: 'global' }, ({ headers, set }) => {
     const authHeader = headers['authorization'];
     const token = authHeader?.split(' ')[1];
 
     if (!token) {
-        set.status = 401;
-        throw new Error('Unauthorized. No token provided.');
+        throw new UnauthorizedError('Отсутствует токен.');
     }
 
     const decoded = verifyAccessToken(token);

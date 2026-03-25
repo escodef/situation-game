@@ -1,24 +1,14 @@
-import { UserRepo } from 'src/database/repositories/user.repo';
+import { NotFoundError } from 'elysia';
+import { UserRepo } from 'src/database/repositories';
 
-export const getUser = async (userId: string): Promise<Response> => {
-    try {
-        const user = await UserRepo.findById(userId);
-        return Response.json(
-            {
-                success: true,
-                message: 'User fetched successfully',
-                user: user,
-            },
-            { status: 200 },
-        );
-    } catch (error) {
-        console.error('getProfile() Error:', error);
-        return Response.json(
-            {
-                success: false,
-                message: 'Internal server error',
-            },
-            { status: 500 },
-        );
+export const getUser = async (userId: string) => {
+    const user = await UserRepo.findById(userId);
+    if (!user) {
+        throw new NotFoundError('Пользователь с таким id не найдены');
     }
+    return {
+        success: true,
+        message: 'User fetched successfully',
+        user: user,
+    };
 };

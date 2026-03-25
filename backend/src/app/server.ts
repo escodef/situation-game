@@ -1,8 +1,7 @@
 import openapi, { fromTypes } from '@elysiajs/openapi';
 import staticPlugin from '@elysiajs/static';
 import { Elysia, NotFoundError, t } from 'elysia';
-import { AuthError, verifyAccessToken } from 'src/shared';
-import { BadRequestError } from 'src/shared/errors/bad-request.error';
+import { BadRequestError, ConflictError, UnauthorizedError, verifyAccessToken } from 'src/shared';
 import { auth, cardpack, game, situationpack, user } from './routers';
 import { handleMessage } from './socket/websocket.handler';
 import { WebsocketManager } from './socket/websocket.manager';
@@ -12,9 +11,10 @@ export const createApp = (port: number) => {
 
     const app = new Elysia()
         .error({
-            AUTH_ERROR: AuthError,
+            UNAUTHORIZED: UnauthorizedError,
             NOT_FOUND: NotFoundError,
             BAD_REQUEST: BadRequestError,
+            CONFLICT: ConflictError,
         })
         .onError(({ code, error, set }) => {
             const message = error instanceof Error ? error.message : 'Unknown error';
@@ -24,11 +24,14 @@ export const createApp = (port: number) => {
                 case 'BAD_REQUEST':
                     set.status = 400;
                     return { success: false, message: error.message };
-                case 'AUTH_ERROR':
+                case 'UNAUTHORIZED':
                     set.status = 401;
                     return { success: false, message: error.message };
                 case 'NOT_FOUND':
                     set.status = 404;
+                    return { success: false, message: error.message };
+                case 'CONFLICT':
+                    set.status = 409;
                     return { success: false, message: error.message };
                 case 'VALIDATION':
                     set.status = 422;
@@ -41,8 +44,8 @@ export const createApp = (port: number) => {
                     return { success: false, message: 'Неизвестная ошибка' };
             }
         })
-        .use(staticPlugin({ assets: 'docs', prefix: '/asyncapi-static' }))
-        .get('/asyncapi', () => Bun.file('./docs/index.html'))
+        .use(staticPlugin({ assets: 'docs', prefix: '' }))
+        .get('/asyncapi', () => Bun.file('./docs/index.html'), { detail: { hide: true } })
         .use(
             openapi({
                 references: fromTypes(),
@@ -60,11 +63,7 @@ export const createApp = (port: number) => {
                 },
             }),
         )
-        .use(auth)
-        .use(user)
-        .use(game)
-        .use(situationpack)
-        .use(cardpack)
+        .group('/api', (app) => app.use(auth).use(user).use(game).use(situationpack).use(cardpack))
         .ws('/ws', {
             query: t.Object({
                 userId: t.String(),

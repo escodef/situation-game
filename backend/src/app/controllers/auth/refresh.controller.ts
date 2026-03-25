@@ -1,23 +1,30 @@
+import type { Cookie } from 'elysia';
 import { SessionRepo } from 'src/database/repositories';
-import { dayInMS } from 'src/shared';
-import { generateTokens, verifyRefreshToken } from 'src/shared/utils/jwt.util';
+import { dayInMS, generateTokens, UnauthorizedError, verifyRefreshToken } from 'src/shared';
 
-export const refreshToken = async ({ cookie: { refreshToken }, error }: any) => {
-    const oldRefreshToken = refreshToken.value;
+export const refreshToken = async ({
+    cookie,
+}: {
+    cookie: Record<string, Cookie<unknown>> & {
+        refreshToken: Cookie<string>;
+    };
+}) => {
+    const { refreshToken } = cookie;
 
-    if (!oldRefreshToken) {
-        return error(401, { success: false, message: 'No token' });
+    if (!refreshToken?.value) {
+        throw new UnauthorizedError('Не передан токен для обновления');
     }
+    const oldRefreshToken = refreshToken.value;
 
     const decoded = verifyRefreshToken(oldRefreshToken);
     if (!decoded || !decoded.userId) {
-        return error(401, { success: false, message: 'Invalid token' });
+        throw new UnauthorizedError('Невалидный токен');
     }
 
     const storedSession = await SessionRepo.findByOldRefresh(oldRefreshToken);
 
     if (!storedSession || !storedSession.user?.id || new Date() > storedSession.expiresAt) {
-        return error(401, { success: false, message: 'Session not found or expired' });
+        throw new UnauthorizedError('Сессия не найдена или токен протух');
     }
 
     await SessionRepo.deleteByRefresh(oldRefreshToken);

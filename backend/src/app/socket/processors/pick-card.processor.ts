@@ -86,7 +86,7 @@ export const processPickCard: TSocketProcessor<{ cardId: string; roundId: string
         await client.query('COMMIT');
     } catch (error) {
         await client.query('ROLLBACK');
-        console.error('PickCard Error:', error);
+        console.error('processPickCard() error:', error);
         ws.send(
             JSON.stringify({
                 event: ESocketOutcomeEvent.ERROR,

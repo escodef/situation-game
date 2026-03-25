@@ -1,4 +1,3 @@
-import { inspect } from 'bun';
 import type { ElysiaWS } from 'elysia/ws';
 import { db } from 'src/database/data-source';
 import { CardPackRepo, GameRepo, SituationPackRepo, UserRepo } from 'src/database/repositories';
@@ -53,11 +52,11 @@ export const processStartGame: TSocketProcessor = async (ws: ElysiaWS<any, any>)
         await client.query('COMMIT');
     } catch (error) {
         await client.query('ROLLBACK');
-        console.error(inspect(error));
+        console.error('processStartGame() error:', error);
         ws.send(
             JSON.stringify({
                 event: ESocketOutcomeEvent.ERROR,
-                data: 'Ошибка сервера при выборе карты',
+                data: 'Ошибка сервера при попытке начать игру',
             }),
         );
     } finally {

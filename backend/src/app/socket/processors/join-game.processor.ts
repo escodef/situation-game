@@ -17,7 +17,7 @@ export const processJoinGame: TSocketProcessor<{ gameId: string }> = async (
         ws.send(
             JSON.stringify({
                 event: ESocketOutcomeEvent.ERROR,
-                data: 'Вы не являетесь участником этой игры',
+                data: 'Ошибка при попытке зайти в игру',
             }),
         );
         return;

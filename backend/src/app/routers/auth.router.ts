@@ -1,16 +1,20 @@
 import Elysia from 'elysia';
-import { LoginSchema, RegisterSchema } from 'src/shared';
+import { LoginSchema, LogoutSchema, RefreshSchema, RegisterSchema } from 'src/shared';
 import { loginUser, logoutUser, refreshToken, registerUser } from '../controllers/auth';
 
 export const auth = new Elysia({
     prefix: '/auth',
-    detail: { tags: ['Авторизация'], security: [{ bearerAuth: [] }] },
+    detail: { tags: ['Авторизация'] },
 })
     .post('/login', (ctx) => loginUser(ctx), {
         body: LoginSchema,
     })
-    .post('/register', ({ body }) => registerUser(body), {
+    .post('/register', (ctx) => registerUser(ctx), {
         body: RegisterSchema,
     })
-    .post('/refresh', (ctx) => refreshToken(ctx))
-    .post('/logout', (ctx) => logoutUser(ctx));
+    .post('/refresh', (ctx) => refreshToken(ctx), {
+        cookie: RefreshSchema,
+    })
+    .post('/logout', (ctx) => logoutUser(ctx), {
+        headers: LogoutSchema,
+    });

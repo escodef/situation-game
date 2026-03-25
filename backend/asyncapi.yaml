@@ -1,4 +1,4 @@
-asyncapi: 3.0.0
+asyncapi: 3.1.0
 info:
   title: Situation Game WebSocket API
   version: 1.0.0
@@ -39,17 +39,16 @@ operations:
     channel:
       $ref: "#/channels/gameRoot"
     messages:
-      - $ref: "#/components/messages/joinGame"
-      - $ref: "#/components/messages/startGame"
+      - $ref: "#/channels/gameRoot/messages/joinGame"
+      - $ref: "#/channels/gameRoot/messages/startGame"
 
   sendEvents:
     action: send
     channel:
       $ref: "#/channels/gameRoot"
     messages:
-      - $ref: "#/components/messages/playerJoined"
-      - $ref: "#/components/messages/errorEvent"
-
+      - $ref: "#/channels/gameRoot/messages/playerJoined"
+      - $ref: "#/channels/gameRoot/messages/errorEvent"
 components:
   messages:
     joinGame:

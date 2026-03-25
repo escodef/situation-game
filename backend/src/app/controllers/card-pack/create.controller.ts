@@ -1,8 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { CardPackRepo } from 'src/database/repositories';
 import { deleteFile, uploadFile } from 'src/s3/util';
-import type { TokenPayload } from 'src/shared';
-import type { CreateCardPackDto } from 'src/shared/schemas/card-pack.schema';
+import type { CreateCardPackDto, TokenPayload } from 'src/shared';
 
 export const createCardPack = async ({
     body,

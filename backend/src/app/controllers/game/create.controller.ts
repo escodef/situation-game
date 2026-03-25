@@ -1,4 +1,4 @@
-import { GameRepo } from 'src/database/repositories/game.repo';
+import { GameRepo } from 'src/database/repositories';
 import { type CreateGameDto, generateRandomString, type TokenPayload } from 'src/shared';
 
 export const createGame = async ({

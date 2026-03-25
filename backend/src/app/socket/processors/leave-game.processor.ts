@@ -33,11 +33,11 @@ export const processLeaveGame: TSocketProcessor = async (ws: ElysiaWS<any, any>)
         await client.query('COMMIT');
     } catch (error) {
         await client.query('ROLLBACK');
-        console.error('PickCard Error:', error);
+        console.error('processLeaveGame() error:', error);
         ws.send(
             JSON.stringify({
                 event: ESocketOutcomeEvent.ERROR,
-                data: 'Ошибка сервера при выборе карты',
+                data: 'Ошибка сервера при выходе из игры',
             }),
         );
     } finally {

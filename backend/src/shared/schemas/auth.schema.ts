@@ -28,5 +28,14 @@ export const LoginSchema = t.Object({
     }),
 });
 
+export const LogoutSchema = t.Object({
+    authorization: t.String({ examples: ['Bearer: <Access токен>'] }),
+});
+
+export const RefreshSchema = t.Cookie({
+    refreshToken: t.String({ description: 'Рефреш токен' }),
+});
+
 export type RegisterDto = Static<typeof RegisterSchema>;
 export type LoginDto = Static<typeof LoginSchema>;
+export type LogoutDto = Static<typeof LogoutSchema>;

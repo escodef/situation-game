@@ -1,21 +1,17 @@
 import { SessionRepo } from 'src/database/repositories';
+import { UnauthorizedError } from 'src/shared';
 
-export const logoutUser = async ({ headers, cookie: { refreshToken }, error }: any) => {
+export const logoutUser = async ({ headers, cookie: { refreshToken } }: any) => {
     const authHeader = headers['authorization'];
     const token = authHeader?.split(' ')[1];
 
     if (!token) {
-        return error(401, { success: false, message: 'Unauthorized' });
+        return new UnauthorizedError('Токен не валиден');
     }
 
-    try {
-        await SessionRepo.deleteByAccess(token);
+    await SessionRepo.deleteByAccess(token);
 
-        refreshToken.remove();
+    refreshToken.remove();
 
-        return { success: true };
-    } catch (e) {
-        console.error('Logout Error:', e);
-        return error(500, { success: false, message: 'Internal error' });
-    }
+    return { success: true };
 };
