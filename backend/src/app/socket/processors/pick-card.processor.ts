@@ -63,7 +63,7 @@ export const processPickCard: TSocketProcessor<TPickCardPayload> = async (ws: TE
             round.gameId,
             {
                 event: ESocketOutcomeEvent.CARD_PICKED,
-                data: { userId, cardId },
+                data: { userId },
             },
             true,
         );
