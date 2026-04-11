@@ -1,14 +1,14 @@
-import { GameRepo } from 'src/database/repositories';
-import { type CreateGameDto, generateRandomString, type TokenPayload } from 'src/shared';
+import { GameRepo } from 'database/repositories';
+import type { Context } from 'elysia';
+import { type CreateGameDto, generateRandomString, type TokenPayload } from 'shared';
 
 export const createGame = async ({
     body,
     user,
     set,
-}: {
+}: Pick<Context, 'set'> & {
     body: CreateGameDto;
     user: TokenPayload;
-    set: any;
 }) => {
     const code = generateRandomString();
 

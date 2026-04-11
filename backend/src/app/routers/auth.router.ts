@@ -1,5 +1,5 @@
 import Elysia from 'elysia';
-import { LoginSchema, LogoutSchema, RefreshSchema, RegisterSchema } from 'src/shared';
+import { LoginSchema, LogoutSchema, RefreshSchema, RegisterSchema } from 'shared';
 import { loginUser, logoutUser, refreshToken, registerUser } from '../controllers/auth';
 
 export const auth = new Elysia({

@@ -1,12 +1,12 @@
-import { SituationPackRepo } from 'src/database/repositories';
-import type { GetSituationPacksDto } from 'src/shared';
+import { SituationPackRepo } from 'database/repositories';
+import type { Context } from 'elysia';
+import type { GetSituationPacksDto } from 'shared';
 
 export const getAllSituationPacks = async ({
     query: { page, take },
     set,
-}: {
+}: Pick<Context, 'set'> & {
     query: GetSituationPacksDto;
-    set: any;
 }) => {
     const { items, total } = await SituationPackRepo.findAll(page, take);
 

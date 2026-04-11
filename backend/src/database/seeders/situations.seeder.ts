@@ -4135,7 +4135,7 @@ export const seedSituations = async () => {
             return;
         }
 
-        const values: any[] = [];
+        const values: (string | boolean)[] = [];
         const placeholders: string[] = [];
         let counter = 1;
 

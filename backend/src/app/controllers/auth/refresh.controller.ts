@@ -1,6 +1,6 @@
+import { SessionRepo } from 'database/repositories';
 import type { Cookie } from 'elysia';
-import { SessionRepo } from 'src/database/repositories';
-import { dayInMS, generateTokens, UnauthorizedError, verifyRefreshToken } from 'src/shared';
+import { dayInMS, generateTokens, UnauthorizedError, verifyRefreshToken } from 'shared';
 
 export const refreshToken = async ({
     cookie,
@@ -17,13 +17,13 @@ export const refreshToken = async ({
     const oldRefreshToken = refreshToken.value;
 
     const decoded = verifyRefreshToken(oldRefreshToken);
-    if (!decoded || !decoded.userId) {
+    if (!decoded?.userId) {
         throw new UnauthorizedError('Невалидный токен');
     }
 
     const storedSession = await SessionRepo.findByOldRefresh(oldRefreshToken);
 
-    if (!storedSession || !storedSession.user?.id || new Date() > storedSession.expiresAt) {
+    if (!storedSession?.user?.id || new Date() > storedSession.expiresAt) {
         throw new UnauthorizedError('Сессия не найдена или токен протух');
     }
 

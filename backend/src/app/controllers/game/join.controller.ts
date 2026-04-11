@@ -1,15 +1,14 @@
-import { NotFoundError } from 'elysia';
-import { GameRepo, UserRepo } from 'src/database/repositories';
-import { EGameStatus, type JoinGameDto, type TokenPayload } from 'src/shared';
+import { GameRepo, UserRepo } from 'database/repositories';
+import { type Context, NotFoundError } from 'elysia';
+import { EGameStatus, type JoinGameDto, type TokenPayload } from 'shared';
 
 export const joinGame = async ({
     body,
     user,
     set,
-}: {
+}: Pick<Context, 'set'> & {
     body: JoinGameDto;
     user: TokenPayload;
-    set: any;
 }) => {
     const game = await GameRepo.findByCode('code' in body ? body.code : body.gameId);
 

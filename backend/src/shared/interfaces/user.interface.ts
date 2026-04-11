@@ -18,3 +18,5 @@ export interface IUser {
     hand?: Partial<IPlayerHand>[];
     votes?: Partial<IVote>[];
 }
+
+export interface IUserPublic extends Omit<IUser, 'password'> {}

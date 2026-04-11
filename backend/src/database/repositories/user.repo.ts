@@ -1,6 +1,6 @@
-import { EUserRole } from 'src/shared/enums/role.enum';
-import type { IUser } from 'src/shared/interfaces/user.interface';
-import type { Queryable } from 'src/shared/types/pg.types';
+import { EUserRole } from 'shared/enums/role.enum';
+import type { IUser } from 'shared/interfaces/user.interface';
+import type { Queryable } from 'shared/types/pg.types';
 import { db } from '../data-source';
 
 export const UserRepo = {
@@ -13,7 +13,7 @@ export const UserRepo = {
     async findWithGame(userId: string, client: Queryable = db): Promise<IUser | null> {
         const sql = `
         SELECT 
-            u.id, u.nickname, u.email, u.roles, u.score, u.game_id as "gameId",
+            u.id, u.nickname, u.email, u.roles, u.created_at as "created_at", u.score, u.game_id as "gameId",
             g.id as "g_id", g.code as "g_code", g.status as "g_status", g.owner_id as "g_owner_id"
         FROM "users" u
         LEFT JOIN "games" g ON u.game_id = g.id

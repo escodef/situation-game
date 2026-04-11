@@ -1,20 +1,17 @@
-import { UserRepo } from 'src/database/repositories';
-import { generateTokens, type LoginDto, UnauthorizedError } from 'src/shared';
+import { UserRepo } from 'database/repositories';
+import type { Context } from 'elysia';
+import { generateTokens, type LoginDto, UnauthorizedError } from 'shared';
 
 export const loginUser = async ({
     body,
     cookie: { refreshToken },
-}: {
-    body: LoginDto;
-    cookie: any;
-    set: any;
-}) => {
+}: Pick<Context, 'set' | 'cookie'> & { body: LoginDto }) => {
     const { email, password } = body;
 
     const user = await UserRepo.findByEmailForAuth(email);
 
-    if (!user) {
-        throw new UnauthorizedError('Invalid credentials');
+    if (!user || !refreshToken) {
+        throw new UnauthorizedError('Неверный логин или пароль');
     }
 
     const isPasswordValid = await Bun.password.verify(password, user.password);

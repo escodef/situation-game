@@ -1,5 +1,5 @@
-import type { IPlayerMove } from 'src/shared';
-import type { Queryable } from 'src/shared/types/pg.types';
+import type { IPlayerMove } from 'shared';
+import type { Queryable } from 'shared/types/pg.types';
 import { db } from '../data-source';
 
 export const PlayerMoveRepo = {

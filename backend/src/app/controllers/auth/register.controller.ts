@@ -1,7 +1,8 @@
-import { UserRepo } from 'src/database/repositories';
-import { ConflictError, type RegisterDto } from 'src/shared';
+import { UserRepo } from 'database/repositories';
+import type { Context } from 'elysia';
+import { ConflictError, type RegisterDto } from 'shared';
 
-export const registerUser = async ({ body, set }: { body: RegisterDto; set: any }) => {
+export const registerUser = async ({ body, set }: Pick<Context, 'set'> & { body: RegisterDto }) => {
     const { email, password, nickname } = body;
     const existing = await UserRepo.findByEmailForAuth(email);
     if (existing) {

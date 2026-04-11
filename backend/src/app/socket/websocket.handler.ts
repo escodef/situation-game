@@ -1,5 +1,9 @@
-import type { ElysiaWS } from 'elysia/ws';
-import { ESocketIncomeEvent, ESocketOutcomeEvent, type ISocketIncomeMessage } from 'src/shared';
+import {
+    ESocketIncomeEvent,
+    ESocketOutcomeEvent,
+    type TElysiaWS,
+    type TSocketIncomeMessage,
+} from 'shared';
 import {
     processJoinGame,
     processLeaveGame,
@@ -8,12 +12,9 @@ import {
     processVote,
 } from './processors';
 
-export const handleMessage = async (ws: ElysiaWS<any, any>, messageString: any) => {
+export const handleMessage = async (ws: TElysiaWS, message: TSocketIncomeMessage) => {
     try {
-        const message: ISocketIncomeMessage<any> =
-            typeof messageString === 'string' ? JSON.parse(messageString) : messageString;
-
-        if (!message?.event) {
+        if (!message.event) {
             ws.send({ event: ESocketOutcomeEvent.ERROR, data: 'No event name' });
             return;
         }

@@ -1,5 +1,5 @@
 import Elysia from 'elysia';
-import { authenticate, CreateCardPackSchema, GetCardPacksSchema } from 'src/shared';
+import { authenticate, CreateCardPackSchema, GetCardPacksSchema } from 'shared';
 import { createCardPack, getAllCardPacks } from '../controllers/card-pack';
 
 export const cardpack = new Elysia({

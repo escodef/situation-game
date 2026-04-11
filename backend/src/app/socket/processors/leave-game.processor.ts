@@ -1,10 +1,14 @@
-import type { ElysiaWS } from 'elysia/ws';
-import { db } from 'src/database/data-source';
-import { UserRepo } from 'src/database/repositories';
-import { ESocketOutcomeEvent, type TSocketProcessor } from 'src/shared';
+import { db } from 'database/data-source';
+import { UserRepo } from 'database/repositories';
+import {
+    ESocketOutcomeEvent,
+    type TElysiaWS,
+    type TLeaveGamePayload,
+    type TSocketProcessor,
+} from 'shared';
 import { websocketInstance } from '../websocket.manager';
 
-export const processLeaveGame: TSocketProcessor = async (ws: ElysiaWS<any, any>) => {
+export const processLeaveGame: TSocketProcessor<TLeaveGamePayload> = async (ws: TElysiaWS) => {
     const { userId } = ws.data;
 
     const client = await db.connect();

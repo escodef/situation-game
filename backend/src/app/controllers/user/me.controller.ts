@@ -1,6 +1,6 @@
+import { UserRepo } from 'database/repositories';
 import { NotFoundError } from 'elysia';
-import { UserRepo } from 'src/database/repositories';
-import type { TokenPayload } from 'src/shared';
+import type { TokenPayload } from 'shared';
 
 export const getMe = async ({ user }: { user: TokenPayload }) => {
     const userData = await UserRepo.findById(user.userId);

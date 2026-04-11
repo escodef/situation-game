@@ -1,5 +1,5 @@
-import { AUTH_CONFIG } from 'src/shared';
-import type { ISession } from 'src/shared/interfaces/session.interface';
+import { AUTH_CONFIG } from 'shared';
+import type { ISession } from 'shared/interfaces/session.interface';
 import { db } from '../data-source';
 
 export const SessionRepo = {
@@ -18,7 +18,7 @@ export const SessionRepo = {
                     'roles', u.roles
                 ) AS user
             FROM "sessions" rt
-            JOIN "user" u ON rt.user_id = u.id
+            JOIN "users" u ON rt.user_id = u.id
             WHERE rt.token = $1;
         `;
 

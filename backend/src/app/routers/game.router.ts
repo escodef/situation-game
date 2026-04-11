@@ -1,5 +1,5 @@
 import Elysia from 'elysia';
-import { authenticate, CreateGameSchema, GetGamesSchema, JoinGameSchema } from 'src/shared';
+import { authenticate, CreateGameSchema, GetGamesSchema, JoinGameSchema } from 'shared';
 import { createGame, getGames, joinGame } from '../controllers/game';
 
 export const game = new Elysia({

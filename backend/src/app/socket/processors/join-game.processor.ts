@@ -1,19 +1,15 @@
-import type { ElysiaWS } from 'elysia/ws';
-import { UserRepo } from 'src/database/repositories';
-import type { TSocketProcessor } from 'src/shared';
-import { ESocketOutcomeEvent } from 'src/shared/enums';
+import { UserRepo } from 'database/repositories';
+import type { TElysiaWS, TJoinGamePayload, TSocketProcessor } from 'shared';
+import { ESocketOutcomeEvent } from 'shared/enums';
 import { websocketInstance } from '../websocket.manager';
 
-export const processJoinGame: TSocketProcessor<{ gameId: string }> = async (
-    ws: ElysiaWS<any, any>,
-    data: { gameId: string },
-) => {
+export const processJoinGame: TSocketProcessor<TJoinGamePayload> = async (ws: TElysiaWS, data) => {
     const { userId } = ws.data;
     const { gameId } = data;
 
     const user = await UserRepo.findById(userId);
 
-    if (!user || !user.gameId || user.gameId !== gameId) {
+    if (!user?.gameId || user.gameId !== gameId) {
         ws.send(
             JSON.stringify({
                 event: ESocketOutcomeEvent.ERROR,

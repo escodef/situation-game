@@ -1,13 +1,15 @@
-import type { ElysiaWS } from 'elysia/ws';
-import { db } from 'src/database/data-source';
-import { GameRoundRepo, PlayerHandRepo, PlayerMoveRepo, UserRepo } from 'src/database/repositories';
-import { ERoundStatus, ESocketOutcomeEvent, type TSocketProcessor } from 'src/shared';
+import { db } from 'database/data-source';
+import { GameRoundRepo, PlayerHandRepo, PlayerMoveRepo, UserRepo } from 'database/repositories';
+import {
+    ERoundStatus,
+    ESocketOutcomeEvent,
+    type TElysiaWS,
+    type TPickCardPayload,
+    type TSocketProcessor,
+} from 'shared';
 import { websocketInstance } from '../websocket.manager';
 
-export const processPickCard: TSocketProcessor<{ cardId: string; roundId: string }> = async (
-    ws: ElysiaWS<any, any>,
-    data: { cardId: string; roundId: string },
-) => {
+export const processPickCard: TSocketProcessor<TPickCardPayload> = async (ws: TElysiaWS, data) => {
     const { userId } = ws.data;
     const { cardId, roundId } = data;
     const client = await db.connect();

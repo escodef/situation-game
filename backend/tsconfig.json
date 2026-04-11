@@ -9,7 +9,9 @@
         "types": ["bun-types"],
         "removeComments": true,
         "allowSyntheticDefaultImports": true,
-        "baseUrl": "./",
+        "paths": {
+            "*": ["./src/*"],
+        },
         "skipLibCheck": true,
         "noImplicitAny": true,
         "forceConsistentCasingInFileNames": false,

@@ -1,16 +1,17 @@
+import { db } from 'database/data-source';
+import { CardPackRepo } from 'database/repositories';
+import type { Context } from 'elysia';
 import { randomUUID } from 'node:crypto';
-import { CardPackRepo } from 'src/database/repositories';
-import { deleteFile, uploadFile } from 'src/s3/util';
-import type { CreateCardPackDto, TokenPayload } from 'src/shared';
+import { deleteFile, uploadFile } from 's3/util';
+import type { CreateCardPackDto, TokenPayload } from 'shared';
 
 export const createCardPack = async ({
     body,
     user,
     set,
-}: {
+}: Pick<Context, 'set'> & {
     body: CreateCardPackDto;
     user: TokenPayload;
-    set: any;
 }) => {
     const { name, cards } = body;
     const uploadedKeys: string[] = [];
@@ -29,14 +30,22 @@ export const createCardPack = async ({
 
         const urls = await Promise.all(uploadTasks);
 
-        const result = await CardPackRepo.createWithCards({
-            name,
-            creatorId: user.userId,
-            urls,
-        });
-
-        set.status = 201;
-        return { success: true, data: result };
+        const client = await db.connect();
+        try {
+            await client.query('BEGIN');
+            const result = await CardPackRepo.createWithCards(
+                { name, creatorId: user.userId, urls },
+                client,
+            );
+            await client.query('COMMIT');
+            set.status = 201;
+            return { success: true, data: result };
+        } catch (e) {
+            await client.query('ROLLBACK');
+            throw e;
+        } finally {
+            client.release();
+        }
     } catch (error) {
         console.error('Ошибка при создании пака:', error);
 

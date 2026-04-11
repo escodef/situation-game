@@ -1,5 +1,5 @@
 import Elysia, { t } from 'elysia';
-import { authenticate } from 'src/shared';
+import { authenticate } from 'shared';
 import { getMe, getUser } from '../controllers/user';
 
 export const user = new Elysia({

@@ -1,11 +1,15 @@
-import { SessionRepo } from 'src/database/repositories';
-import { UnauthorizedError } from 'src/shared';
+import { SessionRepo } from 'database/repositories';
+import type { Context } from 'elysia';
+import { type LogoutDto, UnauthorizedError } from 'shared';
 
-export const logoutUser = async ({ headers, cookie: { refreshToken } }: any) => {
-    const authHeader = headers['authorization'];
+export const logoutUser = async ({
+    headers,
+    cookie: { refreshToken },
+}: Pick<Context, 'cookie'> & { headers: LogoutDto }) => {
+    const authHeader = headers.authorization;
     const token = authHeader?.split(' ')[1];
 
-    if (!token) {
+    if (!token || !refreshToken) {
         return new UnauthorizedError('Токен не валиден');
     }
 

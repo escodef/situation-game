@@ -1,5 +1,5 @@
-import type { IGame } from 'src/shared/interfaces/game.interface';
-import type { Queryable } from 'src/shared/types/pg.types';
+import type { IGame } from 'shared/interfaces/game.interface';
+import type { Queryable } from 'shared/types/pg.types';
 import { db } from '../data-source';
 
 export const GameRepo = {
@@ -62,7 +62,7 @@ export const GameRepo = {
                 g.max_players AS "maxPlayers", 
                 g.max_rounds AS "maxRounds", 
                 g.date_created AS "dateCreated", 
-                g.is_open AS "isOpen",
+                g.is_open AS "isOpen"
             FROM games g
             WHERE g.id = $1 OR g.code = $1;
         `;

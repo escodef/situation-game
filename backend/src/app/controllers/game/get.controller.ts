@@ -1,12 +1,12 @@
-import { GameRepo } from 'src/database/repositories';
-import type { GetGamesDto } from 'src/shared';
+import { GameRepo } from 'database/repositories';
+import type { Context } from 'elysia';
+import type { GetGamesDto } from 'shared';
 
 export const getGames = async ({
     query: { page, take },
     set,
-}: {
+}: Pick<Context, 'set'> & {
     query: GetGamesDto;
-    set: any;
 }) => {
     try {
         const offset = (page - 1) * take;

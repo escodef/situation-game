@@ -1,5 +1,5 @@
+import { UserRepo } from 'database/repositories';
 import { NotFoundError } from 'elysia';
-import { UserRepo } from 'src/database/repositories';
 
 export const getUser = async (userId: string) => {
     const user = await UserRepo.findById(userId);

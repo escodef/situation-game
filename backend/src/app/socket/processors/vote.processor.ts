@@ -1,13 +1,15 @@
-import type { ElysiaWS } from 'elysia/ws';
-import { db } from 'src/database/data-source';
-import { GameRoundRepo, UserRepo, VoteRepo } from 'src/database/repositories';
-import { ERoundStatus, ESocketOutcomeEvent, type TSocketProcessor } from 'src/shared';
+import { db } from 'database/data-source';
+import { GameRoundRepo, UserRepo, VoteRepo } from 'database/repositories';
+import {
+    ERoundStatus,
+    ESocketOutcomeEvent,
+    type TElysiaWS,
+    type TSocketProcessor,
+    type TVotePayload,
+} from 'shared';
 import { websocketInstance } from '../websocket.manager';
 
-export const processVote: TSocketProcessor<{ targetUserId: string }> = async (
-    ws: ElysiaWS<any, any>,
-    data: { targetUserId: string },
-) => {
+export const processVote: TSocketProcessor<TVotePayload> = async (ws: TElysiaWS, data) => {
     const { userId } = ws.data;
     const { targetUserId } = data;
 
@@ -18,7 +20,7 @@ export const processVote: TSocketProcessor<{ targetUserId: string }> = async (
 
         const user = await UserRepo.findById(userId, client);
 
-        if (!user || !user.gameId) {
+        if (!user?.gameId) {
             ws.send(
                 JSON.stringify({
                     event: ESocketOutcomeEvent.ERROR,
@@ -32,7 +34,7 @@ export const processVote: TSocketProcessor<{ targetUserId: string }> = async (
 
         const curRound = await GameRoundRepo.findCurrentRound(gameId, client);
 
-        if (!curRound || !curRound.users?.length) {
+        if (!curRound?.users?.length) {
             throw new Error();
         }
 

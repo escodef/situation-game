@@ -1,5 +1,5 @@
 import Elysia from 'elysia';
-import { authenticate, CreateSituationPackSchema, GetSituationPacksSchema } from 'src/shared';
+import { authenticate, CreateSituationPackSchema, GetSituationPacksSchema } from 'shared';
 import { getAllSituationPacks } from '../controllers/situation-pack';
 import { createSituationPack } from '../controllers/situation-pack/create.controller';
 

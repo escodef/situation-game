@@ -1,14 +1,14 @@
-import { SituationPackRepo } from 'src/database/repositories';
-import type { CreateSituationPackDto, TokenPayload } from 'src/shared';
+import { SituationPackRepo } from 'database/repositories';
+import type { Context } from 'elysia';
+import type { CreateSituationPackDto, TokenPayload } from 'shared';
 
 export const createSituationPack = async ({
     body,
     user,
     set,
-}: {
+}: Pick<Context, 'set'> & {
     body: CreateSituationPackDto;
     user: TokenPayload;
-    set: any;
 }) => {
     const { name, situations } = body;
 

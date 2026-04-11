@@ -1,5 +1,5 @@
-import type { ISituation, ISituationPack } from 'src/shared';
-import type { Queryable } from 'src/shared/types/pg.types';
+import type { ISituation, ISituationPack } from 'shared';
+import type { Queryable } from 'shared/types/pg.types';
 import { db } from '../data-source';
 
 export const SituationPackRepo = {

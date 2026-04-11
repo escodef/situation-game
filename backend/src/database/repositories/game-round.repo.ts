@@ -1,5 +1,4 @@
-import type { ERoundStatus, IGameRound } from 'src/shared';
-import type { Queryable } from 'src/shared/types/pg.types';
+import type { ERoundStatus, IGameRound, Queryable } from 'shared';
 import { db } from '../data-source';
 
 export const GameRoundRepo = {
@@ -47,13 +46,13 @@ export const GameRoundRepo = {
             SELECT 
                 id, 
                 game_id as "gameId", 
-                round_number as "roundNumber", 
-                situation_id as "situationId", 
+                round_number as "roundNumber",
+                situation_id as "situationId",
                 status, 
                 ends_at as "endsAt"
             FROM "game_rounds"
             LEFT JOIN "users"
-            ON game_rounds.game_id = users.game_id; 
+            ON game_rounds.game_id = users.game_id;
             WHERE game_id = $1
             ORDER BY round_number DESC
             LIMIT 1

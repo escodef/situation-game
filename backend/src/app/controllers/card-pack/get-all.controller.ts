@@ -1,12 +1,12 @@
-import { CardPackRepo } from 'src/database/repositories';
-import type { GetCardPacksDto } from 'src/shared';
+import { CardPackRepo } from 'database/repositories';
+import type { Context } from 'elysia';
+import type { GetCardPacksDto } from 'shared';
 
 export const getAllCardPacks = async ({
     query: { page, take },
     set,
-}: {
+}: Pick<Context, 'set'> & {
     query: GetCardPacksDto;
-    set: any;
 }) => {
     const { items, total } = await CardPackRepo.findAll(page, take);
 
