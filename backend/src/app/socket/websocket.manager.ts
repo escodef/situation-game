@@ -45,6 +45,7 @@ export class WebsocketManager {
             if (this.users.has(userId)) return;
 
             if (user?.game) {
+                await UserRepo.leaveGame(userId);
             }
         }, 30000);
     }
@@ -61,6 +62,14 @@ export class WebsocketManager {
         const ws = this.users.get(userId);
         if (ws) {
             ws.send(JSON.stringify(message));
+        }
+    }
+
+    public sendToGameRoom(gameId: string, message: TSocketOutcomeMessage): void {
+        const msg = JSON.stringify(message);
+        const firstWs = Array.from(this.users.values())[0];
+        if (firstWs) {
+            firstWs.publish(gameId, msg);
         }
     }
 

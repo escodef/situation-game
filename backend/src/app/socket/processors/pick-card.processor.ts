@@ -1,5 +1,7 @@
 import { db } from 'database/data-source';
 import { GameRoundRepo, PlayerHandRepo, PlayerMoveRepo, UserRepo } from 'database/repositories';
+import { gameQueue } from 'queue';
+import { GameLoopService } from 'services';
 import {
     ERoundStatus,
     ESocketOutcomeEvent,
@@ -70,6 +72,10 @@ export const processPickCard: TSocketProcessor<TPickCardPayload> = async (ws: TE
 
         if (movesCount >= playersCount) {
             await GameRoundRepo.updateStatus(roundId, ERoundStatus.SHOWING, client);
+
+            const job = await gameQueue.getJob(`picking:${roundId}`);
+            if (job) await job.remove();
+            await GameLoopService.finishPicking(round.gameId, roundId);
 
             websocketInstance.sendToGame(
                 ws,

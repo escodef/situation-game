@@ -1,4 +1,4 @@
-import type { Queryable } from 'shared/types/pg.types';
+import type { Queryable } from 'shared';
 import { db } from '../data-source';
 
 export const PlayerHandRepo = {

@@ -1,3 +1,4 @@
+import { db } from 'database/data-source';
 import { SituationPackRepo } from 'database/repositories';
 import type { Context } from 'elysia';
 import type { CreateSituationPackDto, TokenPayload } from 'shared';
@@ -12,15 +13,29 @@ export const createSituationPack = async ({
 }) => {
     const { name, situations } = body;
 
-    const resp = await SituationPackRepo.createWithSituations({
-        name,
-        situations,
-        creatorId: user.userId,
-    });
+    const client = await db.connect();
+    try {
+        await client.query('BEGIN');
 
-    set.status = 201;
-    return {
-        success: true,
-        situationPackId: resp.id,
-    };
+        const resp = await SituationPackRepo.createWithSituations(
+            {
+                name,
+                situations,
+                creatorId: user.userId,
+            },
+            client,
+        );
+
+        set.status = 201;
+        await client.query('COMMIT');
+
+        return {
+            success: true,
+            situationPackId: resp.id,
+        };
+    } catch {
+        await client.query('ROLLBACK');
+    } finally {
+        client.release();
+    }
 };

@@ -37,5 +37,6 @@ export const RefreshSchema = t.Cookie({
 });
 
 export type RegisterDto = Static<typeof RegisterSchema>;
+export type RefreshDto = Static<typeof RefreshSchema>;
 export type LoginDto = Static<typeof LoginSchema>;
 export type LogoutDto = Static<typeof LogoutSchema>;

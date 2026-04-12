@@ -61,6 +61,7 @@ export const processVote: TSocketProcessor<TVotePayload> = async (ws: TElysiaWS,
                 },
             });
         }
+        await client.query('COMMIT');
     } catch (error) {
         await client.query('ROLLBACK');
         console.error('processVote() error:', error);

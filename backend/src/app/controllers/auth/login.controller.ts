@@ -5,7 +5,7 @@ import { generateTokens, type LoginDto, UnauthorizedError } from 'shared';
 export const loginUser = async ({
     body,
     cookie: { refreshToken },
-}: Pick<Context, 'set' | 'cookie'> & { body: LoginDto }) => {
+}: Pick<Context, 'cookie'> & { body: LoginDto }) => {
     const { email, password } = body;
 
     const user = await UserRepo.findByEmailForAuth(email);

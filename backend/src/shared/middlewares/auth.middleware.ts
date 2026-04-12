@@ -1,5 +1,5 @@
 import { Elysia } from 'elysia';
-import { verifyAccessToken } from 'shared/utils/jwt.util';
+import { verifyAccessToken } from 'shared/utils';
 import { UnauthorizedError } from '../errors';
 
 export const authenticate = new Elysia().derive({ as: 'global' }, ({ headers, set }) => {

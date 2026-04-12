@@ -1,6 +1,4 @@
-import { EUserRole } from 'shared/enums/role.enum';
-import type { IUser } from 'shared/interfaces/user.interface';
-import type { Queryable } from 'shared/types/pg.types';
+import { EUserRole, type IUser, type IUserPublic, type Queryable } from 'shared';
 import { db } from '../data-source';
 
 export const UserRepo = {
@@ -10,7 +8,7 @@ export const UserRepo = {
         return rows[0] || null;
     },
 
-    async findWithGame(userId: string, client: Queryable = db): Promise<IUser | null> {
+    async findWithGame(userId: string, client: Queryable = db): Promise<IUserPublic | null> {
         const sql = `
         SELECT 
             u.id, u.nickname, u.email, u.roles, u.created_at as "created_at", u.score, u.game_id as "gameId",
@@ -27,7 +25,6 @@ export const UserRepo = {
         return {
             id: row.id,
             nickname: row.nickname,
-            password: row.password,
             createdAt: row.createdAt,
             email: row.email,
             roles: row.roles,
@@ -57,8 +54,10 @@ export const UserRepo = {
     },
 
     async findById(id: string, client: Queryable = db): Promise<IUser | null> {
-        const sql =
-            'SELECT id, nickname, email, roles, age, game_id as "gameId" FROM "users" WHERE id = $1';
+        const sql = `
+            SELECT id, nickname, email, roles, score, game_id as "gameId", password 
+            FROM "users" WHERE id = $1
+        `;
         const { rows } = await client.query<IUser>(sql, [id]);
         return rows[0] || null;
     },
@@ -79,6 +78,15 @@ export const UserRepo = {
             WHERE id = $1
         `;
         await client.query(sql, [userId]);
+    },
+
+    async incrementScore(userId: string, points: number, client: Queryable = db): Promise<void> {
+        const sql = `
+            UPDATE "users" 
+            SET score = score + $1 
+            WHERE id = $2
+        `;
+        await client.query(sql, [points, userId]);
     },
 
     async create(data: {

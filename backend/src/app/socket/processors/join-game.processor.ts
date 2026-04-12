@@ -1,6 +1,10 @@
 import { UserRepo } from 'database/repositories';
-import type { TElysiaWS, TJoinGamePayload, TSocketProcessor } from 'shared';
-import { ESocketOutcomeEvent } from 'shared/enums';
+import {
+    ESocketOutcomeEvent,
+    type TElysiaWS,
+    type TJoinGamePayload,
+    type TSocketProcessor,
+} from 'shared';
 import { websocketInstance } from '../websocket.manager';
 
 export const processJoinGame: TSocketProcessor<TJoinGamePayload> = async (ws: TElysiaWS, data) => {

@@ -1,5 +1,4 @@
-import { AUTH_CONFIG } from 'shared';
-import type { ISession } from 'shared/interfaces/session.interface';
+import { AUTH_CONFIG, type ISession } from 'shared';
 import { db } from '../data-source';
 
 export const SessionRepo = {

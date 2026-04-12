@@ -1,5 +1,4 @@
-import type { IGame } from 'shared/interfaces/game.interface';
-import type { Queryable } from 'shared/types/pg.types';
+import type { EGameStatus, IGame, Queryable } from 'shared';
 import { db } from '../data-source';
 
 export const GameRepo = {
@@ -47,7 +46,7 @@ export const GameRepo = {
         return rows[0] || null;
     },
 
-    async updateStatus(gameId: string, status: string, client: Queryable = db): Promise<void> {
+    async updateStatus(gameId: string, status: EGameStatus, client: Queryable = db): Promise<void> {
         const sql = 'UPDATE "games" SET status = $1 WHERE id = $2';
         await client.query(sql, [status, gameId]);
     },

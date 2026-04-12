@@ -1,5 +1,4 @@
-import type { ISituation, ISituationPack } from 'shared';
-import type { Queryable } from 'shared/types/pg.types';
+import type { ISituation, ISituationPack, Queryable } from 'shared';
 import { db } from '../data-source';
 
 export const SituationPackRepo = {
@@ -53,28 +52,20 @@ export const SituationPackRepo = {
 
     async createWithSituations(
         data: { name: string; creatorId: string; situations: string[] },
-        client: Queryable = db,
+        client: Queryable,
     ) {
-        return await client.query('BEGIN').then(async () => {
-            try {
-                const packRes = await client.query(
-                    'INSERT INTO "situation_packs" (name, creator_id) VALUES ($1, $2) RETURNING id',
-                    [data.name, data.creatorId],
-                );
-                const packId = packRes.rows[0].id;
+        const packRes = await client.query(
+            'INSERT INTO "situation_packs" (name, creator_id) VALUES ($1, $2) RETURNING id',
+            [data.name, data.creatorId],
+        );
+        const packId = packRes.rows[0].id;
 
-                if (data.situations.length > 0) {
-                    const values = data.situations.map((_, i) => `($1, $${i + 2})`).join(',');
-                    const sql = `INSERT INTO "situations" (situation_pack_id, text) VALUES ${values}`;
-                    await client.query(sql, [packId, ...data.situations]);
-                }
+        if (data.situations.length > 0) {
+            const values = data.situations.map((_, i) => `($1, $${i + 2})`).join(',');
+            const sql = `INSERT INTO "situations" (situation_pack_id, text) VALUES ${values}`;
+            await client.query(sql, [packId, ...data.situations]);
+        }
 
-                await client.query('COMMIT');
-                return { id: packId, name: data.name, count: data.situations.length };
-            } catch (e) {
-                await client.query('ROLLBACK');
-                throw e;
-            }
-        });
+        return { id: packId, name: data.name, count: data.situations.length };
     },
 };
