@@ -56,7 +56,7 @@ export const createApp = (port: number) => {
         .use(sessionCleanup)
         .use(openApi)
         .group('/api', (app) => app.use(auth).use(user).use(game).use(situationpack).use(cardpack))
-        .group('/ws-group', (group) =>
+        .group('', (group) =>
             group
                 .derive(({ query }) => {
                     const token = query.token;

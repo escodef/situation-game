@@ -16,96 +16,254 @@ channels:
     messages:
       joinGame:
         $ref: "#/components/messages/joinGame"
+      leaveGame:
+        $ref: "#/components/messages/leaveGame"
       startGame:
         $ref: "#/components/messages/startGame"
+      pickCard:
+        $ref: "#/components/messages/pickCard"
+      vote:
+        $ref: "#/components/messages/vote"
+      
       playerJoined:
         $ref: "#/components/messages/playerJoined"
+      playerLeft:
+        $ref: "#/components/messages/playerLeft"
+      playerVoted:
+        $ref: "#/components/messages/playerVoted"
+      gameStarted:
+        $ref: "#/components/messages/gameStarted"
+      cardPicked:
+        $ref: "#/components/messages/cardPicked"
+      roundStageChanged:
+        $ref: "#/components/messages/roundStageChanged"
+      playerReconnected:
+        $ref: "#/components/messages/playerReconnected"
       errorEvent:
         $ref: "#/components/messages/errorEvent"
+
     bindings:
       ws:
         query:
           type: object
           properties:
-            userId:
-              type: string
             token:
               type: string
-          required: [userId, token]
+              description: JWT Access Token
+          required: [token]
 
 operations:
-  receiveMessages:
+  serverReceive:
     action: receive
     channel:
       $ref: "#/channels/gameRoot"
     messages:
       - $ref: "#/channels/gameRoot/messages/joinGame"
+      - $ref: "#/channels/gameRoot/messages/leaveGame"
       - $ref: "#/channels/gameRoot/messages/startGame"
+      - $ref: "#/channels/gameRoot/messages/pickCard"
+      - $ref: "#/channels/gameRoot/messages/vote"
 
-  sendEvents:
+  serverSend:
     action: send
     channel:
       $ref: "#/channels/gameRoot"
     messages:
       - $ref: "#/channels/gameRoot/messages/playerJoined"
+      - $ref: "#/channels/gameRoot/messages/playerLeft"
+      - $ref: "#/channels/gameRoot/messages/playerVoted"
+      - $ref: "#/channels/gameRoot/messages/gameStarted"
+      - $ref: "#/channels/gameRoot/messages/cardPicked"
+      - $ref: "#/channels/gameRoot/messages/roundStageChanged"
+      - $ref: "#/channels/gameRoot/messages/playerReconnected"
       - $ref: "#/channels/gameRoot/messages/errorEvent"
+
 components:
   messages:
     joinGame:
       name: JOIN_GAME
-      summary: Игрок запрашивает вход в комнату
       payload:
         type: object
         properties:
-          event:
-            const: JOIN_GAME
+          event: { const: JOIN_GAME }
           data:
             type: object
             properties:
-              gameId:
-                type: string
+              gameId: { type: string, format: uuid }
             required: [gameId]
+
+    leaveGame:
+      name: LEAVE_GAME
+      payload:
+        type: object
+        properties:
+          event: { const: LEAVE_GAME }
 
     startGame:
       name: START_GAME
-      summary: Запуск начала игры
       payload:
         type: object
         properties:
-          event:
-            const: START_GAME
+          event: { const: START_GAME }
+
+    pickCard:
+      name: PICK_CARD
+      payload:
+        type: object
+        properties:
+          event: { const: PICK_CARD }
           data:
             type: object
+            properties:
+              cardId: { type: string, format: uuid }
+              roundId: { type: string, format: uuid }
+            required: [cardId, roundId]
+
+    vote:
+      name: VOTE
+      payload:
+        type: object
+        properties:
+          event: { const: VOTE }
+          data:
+            type: object
+            properties:
+              targetUserId: { type: string, format: uuid }
+            required: [targetUserId]
 
     playerJoined:
       name: PLAYER_JOINED
-      summary: Уведомление о том, что игрок подключился
       payload:
         type: object
         properties:
-          event:
-            const: PLAYER_JOINED
+          event: { const: PLAYER_JOINED }
           data:
             $ref: "#/components/schemas/PlayerInfo"
 
-    errorEvent:
-      name: ERROR
-      summary: Сообщение об ошибке
+    playerLeft:
+      name: PLAYER_LEFT
       payload:
         type: object
         properties:
-          event:
-            const: ERROR
+          event: { const: PLAYER_LEFT }
           data:
-            type: string
+            type: object
+            properties:
+              userId: { type: string, format: uuid }
+
+    playerVoted:
+      name: PLAYER_VOTED
+      payload:
+        type: object
+        properties:
+          event: { const: PLAYER_VOTED }
+          data:
+            type: object
+            properties:
+              voterId: { type: string }
+              targetUserId: { type: string }
+
+    gameStarted:
+      name: GAME_STARTED
+      summary: Начало раунда (первого или последующих)
+      payload:
+        type: object
+        properties:
+          event: { const: GAME_STARTED }
+          data:
+            type: object
+            properties:
+              roundId: { type: string, format: uuid }
+              roundNumber: { type: number }
+              situationText: { type: string }
+              endsAt: { type: string, format: date-time }
+
+    cardPicked:
+      name: CARD_PICKED
+      summary: Уведомление всем, что кто-то выбрал карту (без показа самой карты)
+      payload:
+        type: object
+        properties:
+          event: { const: CARD_PICKED }
+          data:
+            type: object
+            properties:
+              userId: { type: string }
+
+    roundStageChanged:
+      name: ROUND_STAGE_CHANGED
+      summary: Смена стадии раунда или добор карт
+      payload:
+        type: object
+        properties:
+          event: { const: ROUND_STAGE_CHANGED }
+          data:
+            type: object
+            properties:
+              status:
+                type: string
+                enum: [PICKING, VOTING, SHOWING, FINISHED]
+              hand:
+                type: array
+                description: Присылается персонально игроку в начале стадии PICKING
+                items:
+                  $ref: "#/components/schemas/Card"
+              moves:
+                type: array
+                description: Присылается в стадии VOTING (все выбранные карты)
+                items:
+                  $ref: "#/components/schemas/PlayerMove"
+              winnerId:
+                type: string
+                description: Присылается в конце раунда (FINISHED)
+              players:
+                type: array
+                description: Обновленный список игроков со счетом
+                items:
+                  $ref: "#/components/schemas/PlayerInfo"
+              finalScores:
+                type: array
+                description: Присылается только при окончании всей игры
+                items:
+                  $ref: "#/components/schemas/PlayerInfo"
+
+    playerReconnected:
+      name: PLAYER_RECONNECTED
+      payload:
+        type: object
+        properties:
+          event: { const: PLAYER_RECONNECTED }
+          data:
+            type: object
+            properties:
+              gameId: { type: string }
+
+    errorEvent:
+      name: ERROR
+      payload:
+        type: object
+        properties:
+          event: { const: ERROR }
+          data: { type: string }
 
   schemas:
     PlayerInfo:
       type: object
       properties:
-        userId:
-          type: string
-        nickname:
-          type: string
-        score:
-          type: number
+        userId: { type: string }
+        nickname: { type: string }
+        score: { type: number }
+
+    Card:
+      type: object
+      properties:
+        id: { type: string }
+        url: { type: string }
+
+    PlayerMove:
+      type: object
+      properties:
+        id: { type: string }
+        userId: { type: string }
+        card:
+          $ref: "#/components/schemas/Card"

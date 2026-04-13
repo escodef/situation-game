@@ -10,7 +10,7 @@ export const loginUser = async ({
 
     const user = await UserRepo.findByEmailForAuth(email);
 
-    if (!user || !refreshToken) {
+    if (!user) {
         throw new UnauthorizedError('Неверный логин или пароль');
     }
 
@@ -21,7 +21,7 @@ export const loginUser = async ({
 
     const tokens = generateTokens({ userId: user.id });
 
-    refreshToken.set({
+    refreshToken?.set({
         value: tokens.refreshToken,
         httpOnly: true,
         secure: true,
