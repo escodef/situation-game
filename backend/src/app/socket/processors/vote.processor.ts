@@ -1,5 +1,7 @@
 import { db } from 'database/data-source';
 import { GameRoundRepo, UserRepo, VoteRepo } from 'database/repositories';
+import { gameQueue } from 'queue';
+import { GameLoopService } from 'services';
 import {
     ERoundStatus,
     ESocketOutcomeEvent,
@@ -34,33 +36,44 @@ export const processVote: TSocketProcessor<TVotePayload> = async (ws: TElysiaWS,
 
         const curRound = await GameRoundRepo.findCurrentRound(gameId, client);
 
-        if (!curRound?.users?.length) {
-            throw new Error();
+        if (!curRound || curRound.status !== ERoundStatus.VOTING) {
+            ws.send(
+                JSON.stringify({
+                    event: ESocketOutcomeEvent.ERROR,
+                    data: 'Голосование сейчас недоступно',
+                }),
+            );
+            return;
+        }
+
+        const existingVotes = await VoteRepo.findByRound(curRound.id, client);
+        if (existingVotes.some((v) => v.voterId === userId)) {
+            ws.send(
+                JSON.stringify({ event: ESocketOutcomeEvent.ERROR, data: 'Вы уже проголосовали' }),
+            );
+            return;
         }
 
         const vote = await VoteRepo.create(curRound.id, userId, targetUserId, client);
 
-        const curRoundVotes = await VoteRepo.findByRound(curRound.id);
+        existingVotes.push(vote);
 
         websocketInstance.sendToGame(ws, gameId, {
             event: ESocketOutcomeEvent.PLAYER_VOTED,
             data: {
                 voterId: vote.voterId,
-                targetUserId: vote.targetUserId,
             },
         });
 
-        await GameRoundRepo.updateStatus(curRound.id, ERoundStatus.SHOWING, client);
+        const playersCount = await UserRepo.countPlayersInGame(gameId, client);
 
-        if (curRound.users.length <= curRoundVotes.length) {
-            websocketInstance.sendToGame(ws, gameId, {
-                event: ESocketOutcomeEvent.ROUND_STAGE_CHANGED,
-                data: {
-                    voterId: vote.voterId,
-                    targetUserId: vote.targetUserId,
-                },
-            });
+        if (existingVotes.length >= playersCount) {
+            const job = await gameQueue.getJob(`voting:${curRound.id}`);
+            if (job) await job.remove();
+
+            await GameLoopService.finishVoting(gameId, curRound.id);
         }
+
         await client.query('COMMIT');
     } catch (error) {
         await client.query('ROLLBACK');

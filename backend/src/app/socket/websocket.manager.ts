@@ -1,5 +1,18 @@
-import { UserRepo } from 'database/repositories';
-import { ESocketOutcomeEvent, type TElysiaWS, type TSocketOutcomeMessage } from 'shared';
+import {
+    GameRepo,
+    GameRoundRepo,
+    PlayerHandRepo,
+    PlayerMoveRepo,
+    UserRepo,
+} from 'database/repositories';
+import {
+    EGameStatus,
+    ERoundStatus,
+    ESocketOutcomeEvent,
+    type IPlayerMove,
+    type TElysiaWS,
+    type TSocketOutcomeMessage,
+} from 'shared';
 
 export class WebsocketManager {
     private static instance: WebsocketManager;
@@ -22,30 +35,61 @@ export class WebsocketManager {
         }
 
         this.users.set(userId, ws);
-        console.debug(`User ${userId} connected.`);
-
         const user = await UserRepo.findById(userId);
 
         if (user?.gameId) {
             ws.subscribe(user.gameId);
 
+            const game = await GameRepo.findOne(user.gameId);
+            const currentRound = await GameRoundRepo.findCurrentRound(user.gameId);
+            const hand = await PlayerHandRepo.getHand(userId, user.gameId);
+
+            let moves: IPlayerMove[] = [];
+            if (
+                currentRound &&
+                [ERoundStatus.SHOWING, ERoundStatus.VOTING].includes(currentRound.status)
+            ) {
+                moves = await PlayerMoveRepo.getMovesWithCards(currentRound.id);
+            }
+
             this.sendToUser(userId, {
-                event: ESocketOutcomeEvent.PLAYER_RECONNECTED,
-                data: { gameId: user.gameId },
+                event: ESocketOutcomeEvent.GAME_STATE,
+                data: {
+                    game: game,
+                    currentRound: currentRound,
+                    hand: hand,
+                    moves: moves,
+                },
             });
         }
     }
 
     public async handleDisconnect(userId: string) {
         this.users.delete(userId);
-        console.debug(`User ${userId} disconnected.`);
         const user = await UserRepo.findWithGame(userId);
 
         setTimeout(async () => {
             if (this.users.has(userId)) return;
 
-            if (user?.game) {
+            if (user?.gameId) {
                 await UserRepo.leaveGame(userId);
+
+                const playersCount = await UserRepo.countPlayersInGame(user.gameId);
+
+                this.sendToGameRoom(user.gameId, {
+                    event: ESocketOutcomeEvent.PLAYER_LEFT,
+                    data: { userId },
+                });
+
+                if (playersCount < 2 && user.game?.status === EGameStatus.STARTED) {
+                    await GameRepo.updateStatus(user.gameId, EGameStatus.FINISHED);
+                    await PlayerHandRepo.clearAllGameData(user.gameId);
+
+                    this.sendToGameRoom(user.gameId, {
+                        event: ESocketOutcomeEvent.ERROR,
+                        data: 'Игроки покинули игру. Игра завершена досрочно.',
+                    });
+                }
             }
         }, 30000);
     }

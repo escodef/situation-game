@@ -8,6 +8,7 @@ export enum ESocketIncomeEvent {
 
 export enum ESocketOutcomeEvent {
     CARD_PICKED = 'CARD_PICKED',
+    GAME_STATE = 'GAME_STATE',
     PLAYER_JOINED = 'PLAYER_JOINED',
     PLAYER_LEFT = 'PLAYER_LEFT',
     PLAYER_VOTED = 'PLAYER_VOTED',

@@ -31,6 +31,9 @@ export const GetGamesSchema = t.Object({
     take: t.Number({ maximum: 20 }),
 });
 
+export const GetGameByIdSchema = t.Object({ id: t.String({ format: 'uuid' }) });
+
 export type JoinGameDto = Static<typeof JoinGameSchema>;
 export type CreateGameDto = Static<typeof CreateGameSchema>;
 export type GetGamesDto = Static<typeof GetGamesSchema>;
+export type GetGameByIdDto = Static<typeof GetGameByIdSchema>;
