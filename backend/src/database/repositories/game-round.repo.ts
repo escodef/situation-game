@@ -5,7 +5,7 @@ export const GameRoundRepo = {
     async create(
         data: { gameId: string; roundNumber: number; situationId: string; endsAt: Date },
         client: Queryable = db,
-    ) {
+    ): Promise<Pick<IGameRound, 'id' | 'endsAt'>> {
         const sql = `
             INSERT INTO "game_rounds" (game_id, round_number, situation_id, ends_at, status)
             VALUES ($1, $2, $3, $4, 'PICKING')
@@ -20,15 +20,19 @@ export const GameRoundRepo = {
         return rows[0];
     },
 
-    async findById(id: string, client: Queryable = db) {
-        const sql = 'SELECT id, game_id as "gameId", status FROM "game_rounds" WHERE id = $1';
+    async findById(
+        id: string,
+        client: Queryable = db,
+    ): Promise<Pick<IGameRound, 'id' | 'gameId' | 'status' | 'roundNumber'> | undefined> {
+        const sql =
+            'SELECT id, game_id as "gameId", status, round_number as "roundNumber" FROM "game_rounds" WHERE id = $1';
         const { rows } = await client.query<IGameRound>(sql, [id]);
         return rows[0];
     },
 
-    async findExpiredRounds(client: Queryable = db) {
+    async findExpiredRounds(client: Queryable = db): Promise<Pick<IGameRound, 'id' | 'gameId'>[]> {
         const sql = `SELECT id, game_id FROM "game_rounds" WHERE status = 'PICKING' AND ends_at <= NOW()`;
-        const { rows } = await client.query(sql);
+        const { rows } = await client.query<IGameRound>(sql);
         return rows;
     },
 
@@ -41,7 +45,10 @@ export const GameRoundRepo = {
         await client.query(sql, [status, roundId]);
     },
 
-    async findCurrentRound(gameId: string, client: Queryable = db): Promise<IGameRound | null> {
+    async findCurrentRound(
+        gameId: string,
+        client: Queryable = db,
+    ): Promise<IGameRound | undefined> {
         const sql = `
             SELECT 
                 id, 
@@ -56,6 +63,6 @@ export const GameRoundRepo = {
             LIMIT 1
         `;
         const { rows } = await client.query<IGameRound>(sql, [gameId]);
-        return rows[0] || null;
+        return rows[0];
     },
 };

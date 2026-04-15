@@ -2,7 +2,7 @@ import { AUTH_CONFIG, type ISession } from 'shared';
 import { db } from '../data-source';
 
 export const SessionRepo = {
-    async findByOldRefresh(oldRefreshToken: string): Promise<ISession | null> {
+    async findByOldRefresh(oldRefreshToken: string): Promise<ISession | undefined> {
         const sql = `
             SELECT 
                 rt.id, 
@@ -22,17 +22,17 @@ export const SessionRepo = {
         `;
 
         const { rows } = await db.query<ISession>(sql, [oldRefreshToken]);
-        return rows[0] || null;
+        return rows[0];
     },
 
-    async deleteByRefresh(refreshToken: string) {
+    async deleteByRefresh(refreshToken: string): Promise<void> {
         const sql = 'DELETE FROM "sessions" WHERE refresh_token = $1';
-        return await db.query<ISession>(sql, [refreshToken]);
+        await db.query<ISession>(sql, [refreshToken]);
     },
 
-    async deleteByAccess(accessToken: string) {
+    async deleteByAccess(accessToken: string): Promise<void> {
         const sql = 'DELETE FROM "sessions" WHERE access_token = $1';
-        return await db.query<ISession>(sql, [accessToken]);
+        await db.query<ISession>(sql, [accessToken]);
     },
 
     async create(data: {

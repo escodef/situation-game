@@ -32,7 +32,10 @@ export const SituationPackRepo = {
         };
     },
 
-    async getRandomForGame(gameId: string, client: Queryable = db): Promise<ISituation> {
+    async getRandomForGame(
+        gameId: string,
+        client: Queryable = db,
+    ): Promise<ISituation | undefined> {
         const sql = `
             SELECT s.id, s.text 
             FROM "situations" s
@@ -46,7 +49,7 @@ export const SituationPackRepo = {
             ORDER BY RANDOM()
             LIMIT 1
         `;
-        const { rows } = await client.query(sql, [gameId]);
+        const { rows } = await client.query<ISituation>(sql, [gameId]);
         return rows[0];
     },
 

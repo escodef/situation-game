@@ -8,7 +8,12 @@ export const PlayerMoveRepo = {
         return rows.length > 0;
     },
 
-    async makeMove(roundId: string, userId: string, cardId: string, client: Queryable = db) {
+    async makeMove(
+        roundId: string,
+        userId: string,
+        cardId: string,
+        client: Queryable = db,
+    ): Promise<void> {
         const sql = 'INSERT INTO "player_moves" (round_id, user_id, card_id) VALUES ($1, $2, $3)';
         await client.query(sql, [roundId, userId, cardId]);
     },
@@ -21,10 +26,10 @@ export const PlayerMoveRepo = {
         return rows[0].count;
     },
 
-    async forceRandomMoves(roundId: string, client: Queryable = db) {
+    async forceRandomMoves(roundId: string, client: Queryable = db): Promise<void> {
         const sql = `
             INSERT INTO "player_moves" (round_id, user_id, card_id)
-            SELECT $1, ph.user_id, ph.card_id
+            SELECT ph.round_id, ph.user_id, ph.card_id
             FROM "player_hands" ph
             JOIN "game_rounds" gr ON ph.game_id = gr.game_id
             WHERE gr.id = $1 
@@ -37,7 +42,6 @@ export const PlayerMoveRepo = {
     async getMovesWithCards(roundId: string, client: Queryable = db): Promise<IPlayerMove[]> {
         const sql = `
             SELECT 
-                pm.id, 
                 pm.round_id as "roundId", 
                 pm.user_id as "userId", 
                 pm.card_id as "cardId",
@@ -46,15 +50,13 @@ export const PlayerMoveRepo = {
             JOIN "cards" c ON pm.card_id = c.id
             WHERE pm.round_id = $1
         `;
-        const { rows } = await client.query(sql, [roundId]);
+        const { rows } = await client.query<IPlayerMove & { cardUrl: string }>(sql, [roundId]);
 
         return rows.map((row) => ({
-            id: row.id,
             roundId: row.roundId,
             userId: row.userId,
             cardId: row.cardId,
             card: {
-                id: row.cardId,
                 url: row.cardUrl,
             },
         }));

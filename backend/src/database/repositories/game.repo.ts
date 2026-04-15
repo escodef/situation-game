@@ -39,11 +39,11 @@ export const GameRepo = {
         };
     },
 
-    async findByOwnerId(ownerId: string, client: Queryable = db): Promise<IGame | null> {
+    async findByOwnerId(ownerId: string, client: Queryable = db): Promise<IGame | undefined> {
         const sql =
             'SELECT id, status, code, max_players as "maxPlayers" FROM "games" WHERE owner_id = $1';
-        const { rows } = await client.query(sql, [ownerId]);
-        return rows[0] || null;
+        const { rows } = await client.query<IGame>(sql, [ownerId]);
+        return rows[0];
     },
 
     async updateStatus(gameId: string, status: EGameStatus, client: Queryable = db): Promise<void> {
@@ -51,7 +51,7 @@ export const GameRepo = {
         await client.query(sql, [status, gameId]);
     },
 
-    async findByCode(codeOrId: string, client: Queryable = db) {
+    async findByCode(codeOrId: string, client: Queryable = db): Promise<IGame | undefined> {
         const sql = `
             SELECT 
                 g.id, 
@@ -69,7 +69,7 @@ export const GameRepo = {
         return rows[0];
     },
 
-    async findOne(id: string, client: Queryable = db) {
+    async findOne(id: string, client: Queryable = db): Promise<IGame | undefined> {
         const sql = `
             SELECT 
                 g.id, 

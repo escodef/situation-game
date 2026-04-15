@@ -2,10 +2,10 @@ import { EUserRole, type IUser, type IUserPublic, type Queryable } from 'shared'
 import { db } from '../data-source';
 
 export const UserRepo = {
-    async findByEmailForAuth(email: string): Promise<IUser | null> {
+    async findByEmailForAuth(email: string): Promise<IUser | undefined> {
         const sql = 'SELECT * FROM "users" WHERE email = $1';
         const { rows } = await db.query<IUser>(sql, [email]);
-        return rows[0] || null;
+        return rows[0];
     },
 
     async findWithGame(userId: string, client: Queryable = db): Promise<IUserPublic | null> {
@@ -44,22 +44,25 @@ export const UserRepo = {
     async countPlayersInGame(gameId: string, client: Queryable = db): Promise<number> {
         const sql = 'SELECT COUNT(*)::int as count FROM "users" WHERE game_id = $1';
         const { rows } = await client.query<{ count: number }>(sql, [gameId]);
-        return rows[0]?.count || 0;
+        return rows[0]?.count || 0; // это плохо
     },
 
-    async getPlayersByGameId(gameId: string, client: Queryable = db): Promise<IUser[]> {
+    async getPlayersByGameId(
+        gameId: string,
+        client: Queryable = db,
+    ): Promise<Pick<IUser, 'id' | 'nickname' | 'score'>[]> {
         const sql = 'SELECT id, nickname, score FROM "users" WHERE game_id = $1';
-        const { rows } = await client.query(sql, [gameId]);
+        const { rows } = await client.query<IUser>(sql, [gameId]);
         return rows;
     },
 
-    async findById(id: string, client: Queryable = db): Promise<IUser | null> {
+    async findById(id: string, client: Queryable = db): Promise<IUserPublic | undefined> {
         const sql = `
-            SELECT id, nickname, email, roles, score, game_id as "gameId", password 
+            SELECT id, nickname, email, roles, score, game_id as "gameId" 
             FROM "users" WHERE id = $1
         `;
-        const { rows } = await client.query<IUser>(sql, [id]);
-        return rows[0] || null;
+        const { rows } = await client.query<IUserPublic>(sql, [id]);
+        return rows[0];
     },
 
     async joinGame(userId: string, gameId: string, client: Queryable = db): Promise<void> {
@@ -93,11 +96,11 @@ export const UserRepo = {
         email: string;
         passwordHash: string;
         nickname: string;
-    }): Promise<IUser | undefined> {
+    }): Promise<Pick<IUser, 'id' | 'email' | 'nickname' | 'roles'> | undefined> {
         const sql = `
             INSERT INTO "users" (email, password, nickname, roles)
             VALUES ($1, $2, $3, $4)
-            RETURNING id, email, nickname, roles, game_id as "gameId"
+            RETURNING id, email, nickname, roles
         `;
         const { rows } = await db.query<IUser>(sql, [
             data.email,
