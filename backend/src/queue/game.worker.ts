@@ -1,7 +1,7 @@
 import { Worker } from 'bullmq';
-import { valkeyConnection } from 'database/valkey';
+import { valkeyConnection } from 'database';
+import { GameLoopService } from 'services';
 import { EGameJob } from 'shared';
-import { GameLoopService } from '../services/game-loop.service';
 
 export const gameWorker = new Worker(
     'game-loop',

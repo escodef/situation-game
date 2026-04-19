@@ -1,5 +1,4 @@
-import { db } from 'database/data-source';
-import { GameRoundRepo, UserRepo, VoteRepo } from 'database/repositories';
+import { db, GameRoundRepo, UserRepo, VoteRepo } from 'database';
 import { gameQueue } from 'queue';
 import { GameLoopService } from 'services';
 import {
@@ -9,7 +8,7 @@ import {
     type TSocketProcessor,
     type TVotePayload,
 } from 'shared';
-import { websocketInstance } from '../websocket.manager';
+import { sendToGame } from '../websocket.manager';
 
 export const processVote: TSocketProcessor<TVotePayload> = async (ws: TElysiaWS, data) => {
     const { userId } = ws.data;
@@ -58,7 +57,7 @@ export const processVote: TSocketProcessor<TVotePayload> = async (ws: TElysiaWS,
 
         existingVotes.push(vote);
 
-        websocketInstance.sendToGame(ws, gameId, {
+        sendToGame(ws, gameId, {
             event: ESocketOutcomeEvent.PLAYER_VOTED,
             data: {
                 voterId: vote.voterId,

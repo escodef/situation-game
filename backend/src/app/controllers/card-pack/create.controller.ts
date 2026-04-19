@@ -1,5 +1,4 @@
-import { db } from 'database/data-source';
-import { CardPackRepo } from 'database/repositories';
+import { CardPackRepo, db } from 'database';
 import type { Context } from 'elysia';
 import { randomUUID } from 'node:crypto';
 import { deleteFile, uploadFile } from 's3/util';

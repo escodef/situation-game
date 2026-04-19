@@ -1,4 +1,4 @@
-import { UserRepo } from 'database/repositories';
+import { UserRepo } from 'database';
 import type { Context } from 'elysia';
 import { ConflictError, type RegisterDto } from 'shared';
 

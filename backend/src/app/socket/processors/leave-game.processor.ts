@@ -1,12 +1,11 @@
-import { db } from 'database/data-source';
-import { UserRepo } from 'database/repositories';
+import { db, UserRepo } from 'database';
 import {
     ESocketOutcomeEvent,
     type TElysiaWS,
     type TLeaveGamePayload,
     type TSocketProcessor,
 } from 'shared';
-import { websocketInstance } from '../websocket.manager';
+import { sendToGame } from '../websocket.manager';
 
 export const processLeaveGame: TSocketProcessor<TLeaveGamePayload> = async (ws: TElysiaWS) => {
     const { userId } = ws.data;
@@ -24,7 +23,7 @@ export const processLeaveGame: TSocketProcessor<TLeaveGamePayload> = async (ws: 
 
         await UserRepo.leaveGame(userId, client);
 
-        websocketInstance.sendToGame(
+        sendToGame(
             ws,
             user.gameId,
             {

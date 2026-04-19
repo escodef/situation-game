@@ -1,4 +1,4 @@
-import { UserRepo } from 'database/repositories';
+import { UserRepo } from 'database';
 import { NotFoundError } from 'elysia';
 import type { TokenPayload } from 'shared';
 

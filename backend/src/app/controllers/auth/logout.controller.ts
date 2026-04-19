@@ -1,4 +1,4 @@
-import { SessionRepo } from 'database/repositories';
+import { SessionRepo } from 'database';
 import type { Context } from 'elysia';
 import { type LogoutDto, UnauthorizedError } from 'shared';
 

@@ -4,7 +4,10 @@ import {
     PlayerHandRepo,
     PlayerMoveRepo,
     UserRepo,
-} from 'database/repositories';
+    valkeyConnection,
+    valkeySubscriber,
+} from 'database';
+import type { Server } from 'elysia/universal';
 import {
     EGameStatus,
     ERoundStatus,
@@ -14,122 +17,160 @@ import {
     type TSocketOutcomeMessage,
 } from 'shared';
 
-export class WebsocketManager {
-    private static instance: WebsocketManager;
+const users: Map<string, TElysiaWS> = new Map();
+let appServer: Server | null = null;
 
-    private readonly users: Map<string, TElysiaWS> = new Map();
+const CHANNEL_NAME = 'game-ws-events';
 
-    public static getInstance(): WebsocketManager {
-        if (!WebsocketManager.instance) {
-            WebsocketManager.instance = new WebsocketManager();
-        }
-        return WebsocketManager.instance;
-    }
+export const initWebsocketManager = (server: Server) => {
+    appServer = server;
 
-    public async handleConnect(ws: TElysiaWS) {
-        const userId = ws.data.userId;
+    valkeySubscriber.subscribe(CHANNEL_NAME, (err) => {
+        if (err) console.error('Не удалось подписаться на канал:', err);
+        else console.log(`Начато прослушивание канала: ${CHANNEL_NAME}`);
+    });
 
-        const existingWs = this.users.get(userId);
-        if (existingWs) {
-            existingWs.close(4000, 'Logged in from another device');
-        }
+    valkeySubscriber.on('message', (channel, messageStr) => {
+        if (channel !== CHANNEL_NAME) return;
 
-        this.users.set(userId, ws);
-        const user = await UserRepo.findById(userId);
+        try {
+            const { type, targetId, senderId, includeSelf, message } = JSON.parse(messageStr);
+            const payload = JSON.stringify(message);
 
-        if (user?.gameId) {
-            ws.subscribe(user.gameId);
-
-            const game = await GameRepo.findOne(user.gameId);
-            const currentRound = await GameRoundRepo.findCurrentRound(user.gameId);
-            const hand = await PlayerHandRepo.getHand(userId, user.gameId);
-
-            let moves: IPlayerMove[] = [];
-            if (
-                currentRound &&
-                [ERoundStatus.SHOWING, ERoundStatus.VOTING].includes(currentRound.status)
-            ) {
-                moves = await PlayerMoveRepo.getMovesWithCards(currentRound.id);
-            }
-
-            this.sendToUser(userId, {
-                event: ESocketOutcomeEvent.GAME_STATE,
-                data: {
-                    game: game,
-                    currentRound: currentRound,
-                    hand: hand,
-                    moves: moves,
-                },
-            });
-        }
-    }
-
-    public async handleDisconnect(userId: string) {
-        this.users.delete(userId);
-        const user = await UserRepo.findWithGame(userId);
-
-        setTimeout(async () => {
-            if (this.users.has(userId)) return;
-
-            if (user?.gameId) {
-                await UserRepo.leaveGame(userId);
-
-                const playersCount = await UserRepo.countPlayersInGame(user.gameId);
-
-                this.sendToGameRoom(user.gameId, {
-                    event: ESocketOutcomeEvent.PLAYER_LEFT,
-                    data: { userId },
-                });
-
-                if (playersCount < 2 && user.game?.status === EGameStatus.STARTED) {
-                    await GameRepo.updateStatus(user.gameId, EGameStatus.FINISHED);
-                    await PlayerHandRepo.clearAllGameData(user.gameId);
-
-                    this.sendToGameRoom(user.gameId, {
-                        event: ESocketOutcomeEvent.ERROR,
-                        data: 'Игроки покинули игру. Игра завершена досрочно.',
-                    });
+            if (type === 'user') {
+                const ws = users.get(targetId);
+                if (ws) ws.send(payload);
+            } else if (type === 'room') {
+                if (includeSelf) {
+                    appServer?.publish(targetId, payload);
+                } else {
+                    const senderWs = users.get(senderId);
+                    if (senderWs) {
+                        senderWs.publish(targetId, payload);
+                    } else {
+                        appServer?.publish(targetId, payload);
+                    }
                 }
             }
-        }, 30000);
-    }
-
-    public joinGame(ws: TElysiaWS, gameId: string): void {
-        ws.subscribe(gameId);
-    }
-
-    public leaveGame(ws: TElysiaWS, gameId: string): void {
-        ws.unsubscribe(gameId);
-    }
-
-    public sendToUser(userId: string, message: TSocketOutcomeMessage): void {
-        const ws = this.users.get(userId);
-        if (ws) {
-            ws.send(JSON.stringify(message));
+        } catch (error) {
+            console.error('Ошибки при парсинге сообщения из Valkey:', error);
         }
+    });
+};
+
+export const handleConnect = async (ws: TElysiaWS) => {
+    const userId = ws.data.userId;
+
+    const existingWs = users.get(userId);
+    if (existingWs) {
+        existingWs.close(4000, 'Обнаружен логин с другого устройства');
     }
 
-    public sendToGameRoom(gameId: string, message: TSocketOutcomeMessage): void {
-        const msg = JSON.stringify(message);
-        const firstWs = Array.from(this.users.values())[0];
-        if (firstWs) {
-            firstWs.publish(gameId, msg);
+    users.set(userId, ws);
+    const user = await UserRepo.findById(userId);
+
+    if (user?.gameId) {
+        ws.subscribe(user.gameId);
+
+        const game = await GameRepo.findOne(user.gameId);
+        const currentRound = await GameRoundRepo.findCurrentRound(user.gameId);
+        const hand = await PlayerHandRepo.getHand(userId, user.gameId);
+
+        let moves: IPlayerMove[] = [];
+        if (
+            currentRound &&
+            [ERoundStatus.SHOWING, ERoundStatus.VOTING].includes(currentRound.status)
+        ) {
+            moves = await PlayerMoveRepo.getMovesWithCards(currentRound.id);
         }
+
+        sendToUser(userId, {
+            event: ESocketOutcomeEvent.GAME_STATE,
+            data: {
+                game: game,
+                currentRound: currentRound,
+                hand: hand,
+                moves: moves,
+            },
+        });
     }
+};
 
-    public sendToGame(
-        ws: TElysiaWS,
-        gameId: string,
-        message: TSocketOutcomeMessage,
-        includeSelf: boolean = false,
-    ): void {
-        const msgString = JSON.stringify(message);
-        ws.publish(gameId, msgString);
+export const handleDisconnect = async (userId: string) => {
+    users.delete(userId);
+    const user = await UserRepo.findWithGame(userId);
 
-        if (includeSelf) {
-            ws.send(msgString);
+    setTimeout(async () => {
+        if (users.has(userId)) return;
+
+        if (user?.gameId) {
+            await UserRepo.leaveGame(userId);
+
+            const playersCount = await UserRepo.countPlayersInGame(user.gameId);
+
+            sendToGameRoom(user.gameId, {
+                event: ESocketOutcomeEvent.PLAYER_LEFT,
+                data: { userId },
+            });
+
+            if (playersCount < 2 && user.game?.status === EGameStatus.STARTED) {
+                await GameRepo.updateStatus(user.gameId, EGameStatus.FINISHED);
+                await PlayerHandRepo.clearAllGameData(user.gameId);
+
+                sendToGameRoom(user.gameId, {
+                    event: ESocketOutcomeEvent.ERROR,
+                    data: 'Игроки покинули игру. Игра завершена досрочно.',
+                });
+            }
         }
-    }
-}
+    }, 30000);
+};
 
-export const websocketInstance = WebsocketManager.getInstance();
+export const joinGame = (ws: TElysiaWS, gameId: string) => {
+    ws.subscribe(gameId);
+};
+
+export const leaveGame = (ws: TElysiaWS, gameId: string) => {
+    ws.unsubscribe(gameId);
+};
+
+export const sendToUser = (userId: string, message: TSocketOutcomeMessage): void => {
+    valkeyConnection.publish(
+        CHANNEL_NAME,
+        JSON.stringify({
+            type: 'user',
+            targetId: userId,
+            message,
+        }),
+    );
+};
+
+export const sendToGameRoom = (gameId: string, message: TSocketOutcomeMessage): void => {
+    valkeyConnection.publish(
+        CHANNEL_NAME,
+        JSON.stringify({
+            type: 'room',
+            targetId: gameId,
+            includeSelf: true,
+            message,
+        }),
+    );
+};
+
+export const sendToGame = (
+    ws: TElysiaWS,
+    gameId: string,
+    message: TSocketOutcomeMessage,
+    includeSelf: boolean = false,
+): void => {
+    valkeyConnection.publish(
+        CHANNEL_NAME,
+        JSON.stringify({
+            type: 'room',
+            targetId: gameId,
+            senderId: ws.data.userId,
+            includeSelf,
+            message,
+        }),
+    );
+};

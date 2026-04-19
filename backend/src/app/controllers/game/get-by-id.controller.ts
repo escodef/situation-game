@@ -1,4 +1,4 @@
-import { GameRepo } from 'database/repositories';
+import { GameRepo } from 'database';
 import { NotFoundError } from 'elysia';
 import type { GetGameByIdDto } from 'shared';
 

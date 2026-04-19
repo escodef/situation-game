@@ -4129,33 +4129,52 @@ export const initSituations = {
 };
 
 export const seedSituations = async () => {
+    const client = await db.connect();
     try {
-        const { rows } = await db.query('SELECT COUNT(*) AS count FROM "situations"');
+        const { rows } = await client.query(
+            'SELECT COUNT(*) AS count FROM "situation_packs" WHERE name = $1',
+            ['Стандартный'],
+        );
+
         if (parseInt(rows[0].count, 10) > 0) {
             return;
         }
 
-        const values: (string | boolean)[] = [];
+        await client.query('BEGIN');
+
+        const packRes = await client.query(
+            'INSERT INTO "situation_packs" (name) VALUES ($1) RETURNING id',
+            ['Стандартный'],
+        );
+        const packId = packRes.rows[0].id;
+
+        const values: (string | boolean | null)[] = [];
         const placeholders: string[] = [];
         let counter = 1;
 
         Object.values(initSituations.categories).forEach((cat) => {
             cat.situations.forEach((sit) => {
-                values.push(sit.text, sit.isAdult, cat.title);
-                placeholders.push(`($${counter++}, $${counter++}, $${counter++})`);
+                values.push(sit.text, sit.isAdult, cat.title, packId);
+                placeholders.push(`($${counter++}, $${counter++}, $${counter++}, $${counter++})`);
             });
         });
 
-        if (values.length === 0) return;
+        if (values.length > 0) {
+            const sql = `
+                INSERT INTO "situations" (text, is_adult, category, situation_pack_id) 
+                VALUES ${placeholders.join(', ')}
+            `;
+            await client.query(sql, values);
+        }
 
-        const sql = `
-            INSERT INTO "situations" (text, is_adult, category) 
-            VALUES ${placeholders.join(', ')}
-        `;
-
-        await db.query(sql, values);
-        console.log(`Successfully seeded ${placeholders.length} situations.`);
+        await client.query('COMMIT');
+        console.log(
+            `Сидер стандартного пака выполнен, общее число ситуаций: ${placeholders.length}.`,
+        );
     } catch (error) {
-        console.error('Seeding failed:', error);
+        await client.query('ROLLBACK');
+        console.error('Сидер упал с ошибкой:', error);
+    } finally {
+        client.release();
     }
 };

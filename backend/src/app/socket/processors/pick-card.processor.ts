@@ -1,5 +1,4 @@
-import { db } from 'database/data-source';
-import { GameRoundRepo, PlayerHandRepo, PlayerMoveRepo, UserRepo } from 'database/repositories';
+import { db, GameRoundRepo, PlayerHandRepo, PlayerMoveRepo, UserRepo } from 'database';
 import { gameQueue } from 'queue';
 import { GameLoopService } from 'services';
 import {
@@ -9,7 +8,7 @@ import {
     type TPickCardPayload,
     type TSocketProcessor,
 } from 'shared';
-import { websocketInstance } from '../websocket.manager';
+import { sendToGame } from '../websocket.manager';
 
 export const processPickCard: TSocketProcessor<TPickCardPayload> = async (ws: TElysiaWS, data) => {
     const { userId } = ws.data;
@@ -60,7 +59,7 @@ export const processPickCard: TSocketProcessor<TPickCardPayload> = async (ws: TE
         const playersCount = await UserRepo.countPlayersInGame(round.gameId, client);
         const movesCount = await PlayerMoveRepo.countMovesInRound(roundId, client);
 
-        websocketInstance.sendToGame(
+        sendToGame(
             ws,
             round.gameId,
             {
@@ -77,7 +76,7 @@ export const processPickCard: TSocketProcessor<TPickCardPayload> = async (ws: TE
             if (job) await job.remove();
             await GameLoopService.finishPicking(round.gameId, roundId);
 
-            websocketInstance.sendToGame(
+            sendToGame(
                 ws,
                 round.gameId,
                 {

@@ -1,4 +1,4 @@
-import { CardPackRepo } from 'database/repositories';
+import { CardPackRepo } from 'database';
 import type { Context } from 'elysia';
 import type { GetCardPacksDto } from 'shared';
 

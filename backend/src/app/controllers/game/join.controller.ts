@@ -1,4 +1,4 @@
-import { GameRepo, UserRepo } from 'database/repositories';
+import { GameRepo, UserRepo } from 'database';
 import { type Context, NotFoundError } from 'elysia';
 import { EGameStatus, type JoinGameDto, type TokenPayload } from 'shared';
 

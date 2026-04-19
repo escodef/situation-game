@@ -11,11 +11,9 @@ import {
 import { openApi, sessionCleanup } from './plugins';
 import { auth, cardpack, game, situationpack, user } from './routers';
 import { handleMessage } from './socket/websocket.handler';
-import { WebsocketManager } from './socket/websocket.manager';
+import { handleConnect, handleDisconnect } from './socket/websocket.manager';
 
 export const createApp = (port: number) => {
-    const wsManager = WebsocketManager.getInstance();
-
     const app = new Elysia()
         .error({
             UNAUTHORIZED: UnauthorizedError,
@@ -75,13 +73,13 @@ export const createApp = (port: number) => {
 
                     open(ws) {
                         console.log('User connected:', ws.data.userId);
-                        wsManager.handleConnect(ws);
+                        handleConnect(ws);
                     },
                     message(ws, message) {
                         handleMessage(ws, message);
                     },
                     close(ws) {
-                        wsManager.handleDisconnect(ws.data.userId);
+                        handleDisconnect(ws.data.userId);
                     },
                 }),
         )
@@ -90,6 +88,5 @@ export const createApp = (port: number) => {
             maxRequestBodySize: 1024 * 1024 * 100,
         });
 
-    console.log(`Server is running on port ${app.server?.port}`);
     return app;
 };

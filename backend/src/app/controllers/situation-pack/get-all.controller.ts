@@ -1,4 +1,4 @@
-import { SituationPackRepo } from 'database/repositories';
+import { SituationPackRepo } from 'database';
 import type { Context } from 'elysia';
 import type { GetSituationPacksDto } from 'shared';
 

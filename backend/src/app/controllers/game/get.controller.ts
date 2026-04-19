@@ -1,4 +1,4 @@
-import { GameRepo } from 'database/repositories';
+import { GameRepo } from 'database';
 import type { Context } from 'elysia';
 import type { GetGamesDto } from 'shared';
 

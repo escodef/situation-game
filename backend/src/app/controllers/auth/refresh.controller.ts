@@ -1,4 +1,4 @@
-import { SessionRepo } from 'database/repositories';
+import { SessionRepo } from 'database';
 import type { Cookie } from 'elysia';
 import { dayInMS, generateTokens, UnauthorizedError, verifyRefreshToken } from 'shared';
 

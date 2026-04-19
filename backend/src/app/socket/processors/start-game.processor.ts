@@ -1,5 +1,4 @@
-import { db } from 'database/data-source';
-import { GameRepo, PlayerHandRepo, UserRepo } from 'database/repositories';
+import { db, GameRepo, PlayerHandRepo, UserRepo } from 'database';
 import { GameLoopService } from 'services';
 import {
     EGameStatus,

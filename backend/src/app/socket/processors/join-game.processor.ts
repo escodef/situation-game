@@ -1,11 +1,11 @@
-import { UserRepo } from 'database/repositories';
+import { UserRepo } from 'database';
 import {
     ESocketOutcomeEvent,
     type TElysiaWS,
     type TJoinGamePayload,
     type TSocketProcessor,
 } from 'shared';
-import { websocketInstance } from '../websocket.manager';
+import { joinGame, sendToGame } from '../websocket.manager';
 
 export const processJoinGame: TSocketProcessor<TJoinGamePayload> = async (ws: TElysiaWS, data) => {
     const { userId } = ws.data;
@@ -23,9 +23,9 @@ export const processJoinGame: TSocketProcessor<TJoinGamePayload> = async (ws: TE
         return;
     }
 
-    websocketInstance.joinGame(ws, gameId);
+    joinGame(ws, gameId);
 
-    websocketInstance.sendToGame(ws, gameId, {
+    sendToGame(ws, gameId, {
         event: ESocketOutcomeEvent.PLAYER_JOINED,
         data: {
             userId: user.id,

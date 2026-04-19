@@ -1,7 +1,7 @@
-import { websocketInstance } from 'app/socket/websocket.manager';
+import { sendToGameRoom, sendToUser } from 'app/socket/websocket.manager';
 import { inspect } from 'bun';
-import { db } from 'database/data-source';
 import {
+    db,
     GameRepo,
     GameRoundRepo,
     PlayerHandRepo,
@@ -9,8 +9,8 @@ import {
     SituationPackRepo,
     UserRepo,
     VoteRepo,
-} from 'database/repositories';
-import { gameQueue } from 'queue/game.queue';
+} from 'database';
+import { gameQueue } from 'queue';
 import { EGameJob, EGameStatus, ERoundStatus, ESocketOutcomeEvent } from 'shared';
 
 export const GameLoopService = {
@@ -26,7 +26,7 @@ export const GameLoopService = {
 
             const moves = await PlayerMoveRepo.getMovesWithCards(roundId, client);
 
-            websocketInstance.sendToGameRoom(gameId, {
+            sendToGameRoom(gameId, {
                 event: ESocketOutcomeEvent.ROUND_STAGE_CHANGED,
                 data: {
                     status: ERoundStatus.VOTING,
@@ -72,7 +72,7 @@ export const GameLoopService = {
             await GameRoundRepo.updateStatus(roundId, ERoundStatus.FINISHED, client);
             const players = await UserRepo.getPlayersByGameId(gameId, client);
 
-            websocketInstance.sendToGameRoom(gameId, {
+            sendToGameRoom(gameId, {
                 event: ESocketOutcomeEvent.ROUND_STAGE_CHANGED,
                 data: { status: ERoundStatus.FINISHED, winnerId, players },
             });
@@ -82,7 +82,7 @@ export const GameLoopService = {
 
                 await PlayerHandRepo.clearAllGameData(gameId, client);
 
-                websocketInstance.sendToGameRoom(gameId, {
+                sendToGameRoom(gameId, {
                     event: ESocketOutcomeEvent.ROUND_STAGE_CHANGED,
                     data: {
                         status: EGameStatus.FINISHED,
@@ -113,7 +113,7 @@ export const GameLoopService = {
             if (!situation) {
                 await GameRepo.updateStatus(gameId, EGameStatus.FINISHED, client);
                 await PlayerHandRepo.clearAllGameData(gameId, client);
-                websocketInstance.sendToGameRoom(gameId, {
+                sendToGameRoom(gameId, {
                     event: ESocketOutcomeEvent.ERROR,
                     data: 'Ситуации закончились. Игра завершена.',
                 });
@@ -132,7 +132,7 @@ export const GameLoopService = {
                 client,
             );
 
-            websocketInstance.sendToGameRoom(gameId, {
+            sendToGameRoom(gameId, {
                 event: ESocketOutcomeEvent.GAME_STARTED,
                 data: {
                     roundId: nextRound.id,
@@ -145,7 +145,7 @@ export const GameLoopService = {
             for (const player of players) {
                 const hand = await PlayerHandRepo.getHand(player.id, gameId, client);
 
-                websocketInstance.sendToUser(player.id, {
+                sendToUser(player.id, {
                     event: ESocketOutcomeEvent.ROUND_STAGE_CHANGED,
                     data: {
                         status: ERoundStatus.PICKING,

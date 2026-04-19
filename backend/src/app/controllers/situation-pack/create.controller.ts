@@ -1,5 +1,4 @@
-import { db } from 'database/data-source';
-import { SituationPackRepo } from 'database/repositories';
+import { db, SituationPackRepo } from 'database';
 import type { Context } from 'elysia';
 import type { CreateSituationPackDto, TokenPayload } from 'shared';
 
