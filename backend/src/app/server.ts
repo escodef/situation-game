@@ -1,4 +1,5 @@
 import staticPlugin from '@elysiajs/static';
+import { SessionRepo } from 'database';
 import { Elysia, NotFoundError } from 'elysia';
 import {
     BadRequestError,
@@ -8,13 +9,19 @@ import {
     UnauthorizedError,
     verifyAccessToken,
 } from 'shared';
-import { openApi, sessionCleanup } from './plugins';
+import { corsPlugin, openApiPlugin, sessionCleanupPlugin } from './plugins';
 import { auth, cardpack, game, situationpack, user } from './routers';
 import { handleMessage } from './socket/websocket.handler';
 import { handleConnect, handleDisconnect } from './socket/websocket.manager';
 
 export const createApp = (port: number) => {
     const app = new Elysia()
+        .onRequest(({ request }) => {
+            const url = new URL(request.url).pathname;
+            if (!url.startsWith('/asyncapi')) {
+                console.info(`-> ${request.method} ${url}`);
+            }
+        })
         .error({
             UNAUTHORIZED: UnauthorizedError,
             NOT_FOUND: NotFoundError,
@@ -51,17 +58,23 @@ export const createApp = (port: number) => {
         })
         .use(staticPlugin({ assets: 'docs', prefix: '' }))
         .get('/asyncapi', () => Bun.file('./docs/index.html'), { detail: { hide: true } })
-        .use(sessionCleanup)
-        .use(openApi)
+        .use(sessionCleanupPlugin)
+        .use(openApiPlugin)
+        .use(corsPlugin)
         .group('/api', (app) => app.use(auth).use(user).use(game).use(situationpack).use(cardpack))
         .group('', (group) =>
             group
-                .derive(({ query }) => {
+                .derive(async ({ query }) => {
                     const token = query.token;
-                    if (!token) throw new UnauthorizedError('Token required');
+                    if (!token) throw new UnauthorizedError('Токен отсутствует');
 
                     const payload = verifyAccessToken(token);
-                    if (!payload) throw new UnauthorizedError('Invalid or expired token');
+                    if (!payload) throw new UnauthorizedError('Токен невалидный или истёк');
+
+                    const session = await SessionRepo.findByAccess(token);
+                    if (!session || session.expiresAt < new Date()) {
+                        throw new UnauthorizedError('Сессия истекла');
+                    }
 
                     return {
                         userId: payload.userId,

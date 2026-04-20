@@ -2,7 +2,7 @@ import { cron } from '@elysiajs/cron';
 import { db } from 'database';
 import { Elysia } from 'elysia';
 
-export const sessionCleanup = new Elysia().use(
+export const sessionCleanupPlugin = new Elysia().use(
     cron({
         name: 'cleanup-expired-sessions',
         pattern: '0 * * * *',

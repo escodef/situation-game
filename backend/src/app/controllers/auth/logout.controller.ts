@@ -9,13 +9,13 @@ export const logoutUser = async ({
     const authHeader = headers.authorization;
     const token = authHeader?.split(' ')[1];
 
-    if (!token || !refreshToken) {
+    if (!token) {
         return new UnauthorizedError('Токен не валиден');
     }
 
     await SessionRepo.deleteByAccess(token);
 
-    refreshToken.remove();
+    refreshToken?.remove();
 
     return { success: true };
 };

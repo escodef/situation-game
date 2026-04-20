@@ -30,12 +30,10 @@ export const getGames = async ({
         };
     } catch (error) {
         console.error('getGames() Error:', error);
-        return Response.json(
-            {
-                success: false,
-                message: 'Internal server error',
-            },
-            { status: 500 },
-        );
+        set.status = 500;
+        return {
+            success: false,
+            message: 'Internal server error',
+        };
     }
 };

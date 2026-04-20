@@ -1,10 +1,13 @@
 import { Redis } from 'ioredis';
+import { getOrThrow } from 'shared';
 
-export const valkeyConnection = new Redis(Bun.env.VALKEY_URL || 'redis://localhost:6379', {
+const valkeyUrl = getOrThrow(Bun.env.VALKEY_URL);
+
+export const valkeyConnection = new Redis(valkeyUrl, {
     maxRetriesPerRequest: null,
 });
 
-export const valkeySubscriber = new Redis(Bun.env.VALKEY_URL || 'redis://localhost:6379', {
+export const valkeySubscriber = new Redis(valkeyUrl, {
     maxRetriesPerRequest: null,
 });
 

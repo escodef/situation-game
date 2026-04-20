@@ -12,4 +12,7 @@ export const cardpack = new Elysia({
     })
     .post('/', (ctx) => createCardPack(ctx), {
         body: CreateCardPackSchema,
+        detail: {
+            description: 'Создание пака карточек, ожидается multipart/form-data',
+        },
     });

@@ -15,7 +15,7 @@ export const GameRepo = {
                 status, 
                 max_players AS "maxPlayers", 
                 max_rounds AS "maxRounds", 
-                date_created AS "dateCreated", 
+                created_at AS "createdAt", 
                 is_open AS "isOpen"
             FROM games
             WHERE is_open = true
@@ -60,7 +60,7 @@ export const GameRepo = {
                 g.status, 
                 g.max_players AS "maxPlayers", 
                 g.max_rounds AS "maxRounds", 
-                g.date_created AS "dateCreated", 
+                g.created_at AS "createdAt", 
                 g.is_open AS "isOpen"
             FROM games g
             WHERE g.id = $1 OR g.code = $1;
@@ -78,7 +78,7 @@ export const GameRepo = {
                 g.status, 
                 g.max_players AS "maxPlayers", 
                 g.max_rounds AS "maxRounds", 
-                g.date_created AS "dateCreated", 
+                g.created_at AS "createdAt", 
                 g.is_open AS "isOpen",
                 (SELECT COALESCE(json_agg(json_build_object(
                     'id', u.id, 
@@ -128,7 +128,7 @@ export const GameRepo = {
             INSERT INTO "games" (code, owner_id, max_players, max_rounds, is_open)
             VALUES ($1, $2, $3, $4, $5)
             RETURNING id, code, owner_id AS "ownerId", max_players AS "maxPlayers", 
-                      max_rounds AS "maxRounds", is_open AS "isOpen", date_created AS "createdAt"
+                      max_rounds AS "maxRounds", is_open AS "isOpen", created_at AS "createdAt"
         `;
             const { rows } = await client.query<IGame>(gameSql, [
                 data.code,

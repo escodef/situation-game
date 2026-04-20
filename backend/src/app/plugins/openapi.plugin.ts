@@ -1,14 +1,11 @@
-import openapi, { fromTypes } from '@elysiajs/openapi';
+import openapi from '@elysiajs/openapi';
 import Elysia from 'elysia';
-import { join } from 'node:path';
+import { getOrThrow } from 'shared';
 
-export const openApi = new Elysia().use(
+export const openApiPlugin = new Elysia().use(
     openapi({
-        path: Bun.env.OPENAPI_PATH ?? '/openapi',
+        path: getOrThrow(Bun.env.OPENAPI_PATH),
         exclude: { paths: ['/*', ''] },
-        references: fromTypes('src/index.ts', {
-            projectRoot: join(import.meta.dir, '../../..'),
-        }),
         documentation: {
             info: { title: 'Situation Game API', version: '1.0.0' },
             components: {

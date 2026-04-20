@@ -1,4 +1,4 @@
-import { UserRepo } from 'database';
+import { SessionRepo, UserRepo } from 'database';
 import type { Context } from 'elysia';
 import { generateTokens, type LoginDto, UnauthorizedError } from 'shared';
 
@@ -11,15 +11,21 @@ export const loginUser = async ({
     const user = await UserRepo.findByEmailForAuth(email);
 
     if (!user) {
-        throw new UnauthorizedError('Неверный логин или пароль');
+        throw new UnauthorizedError('Пользователь с такой почтой не найден');
     }
 
     const isPasswordValid = await Bun.password.verify(password, user.password);
     if (!isPasswordValid) {
-        throw new UnauthorizedError('Invalid credentials');
+        throw new UnauthorizedError('Неверный логин или пароль');
     }
 
     const tokens = generateTokens({ userId: user.id });
+
+    await SessionRepo.create({
+        userId: user.id,
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+    });
 
     refreshToken?.set({
         value: tokens.refreshToken,

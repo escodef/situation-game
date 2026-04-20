@@ -2,23 +2,30 @@ import { AUTH_CONFIG, type ISession } from 'shared';
 import { db } from '../data-source';
 
 export const SessionRepo = {
+    async findByAccess(accessToken: string): Promise<ISession | undefined> {
+        const sql = 'SELECT * FROM "sessions" WHERE access_token = $1';
+        const { rows } = await db.query<ISession>(sql, [accessToken]);
+        return rows[0];
+    },
+
     async findByOldRefresh(oldRefreshToken: string): Promise<ISession | undefined> {
         const sql = `
             SELECT 
-                rt.id, 
-                rt.token, 
-                rt.expires_at AS "expiresAt", 
-                rt.created_at AS "createdAt",
-                rt.user_id AS "userId",
+                s.id, 
+                s.access_token AS "accessToken",
+                s.refresh_token AS "refreshToken", 
+                s.expires_at AS "expiresAt", 
+                s.created_at AS "createdAt",
+                s.user_id AS "userId",
                 json_build_object(
                     'id', u.id,
                     'nickname', u.nickname,
                     'email', u.email,
                     'roles', u.roles
                 ) AS user
-            FROM "sessions" rt
-            JOIN "users" u ON rt.user_id = u.id
-            WHERE rt.token = $1;
+            FROM "sessions" s
+            JOIN "users" u ON s.user_id = u.id
+            WHERE s.refresh_token = $1;
         `;
 
         const { rows } = await db.query<ISession>(sql, [oldRefreshToken]);

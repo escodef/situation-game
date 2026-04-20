@@ -54,7 +54,11 @@ export const SituationPackRepo = {
     },
 
     async createWithSituations(
-        data: { name: string; creatorId: string; situations: string[] },
+        data: {
+            name: string;
+            creatorId: string;
+            situations: { text: string; isAdult: boolean; category: string }[];
+        },
         client: Queryable,
     ) {
         const packRes = await client.query(
@@ -64,9 +68,23 @@ export const SituationPackRepo = {
         const packId = packRes.rows[0].id;
 
         if (data.situations.length > 0) {
-            const values = data.situations.map((_, i) => `($1, $${i + 2})`).join(',');
-            const sql = `INSERT INTO "situations" (situation_pack_id, text) VALUES ${values}`;
-            await client.query(sql, [packId, ...data.situations]);
+            const columns = ['situation_pack_id', 'text', 'is_adult', 'category'];
+            const valuesPlaceholder = data.situations
+                .map((_, i) => {
+                    const offset = i * 4;
+                    return `($${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4})`;
+                })
+                .join(',');
+
+            const flatValues = data.situations.flatMap((s) => [
+                packId,
+                s.text,
+                s.isAdult,
+                s.category,
+            ]);
+
+            const sql = `INSERT INTO "situations" (${columns.join(', ')}) VALUES ${valuesPlaceholder}`;
+            await client.query(sql, flatValues);
         }
 
         return { id: packId, name: data.name, count: data.situations.length };

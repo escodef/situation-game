@@ -29,7 +29,7 @@ export const LoginSchema = t.Object({
 });
 
 export const LogoutSchema = t.Object({
-    authorization: t.String({ examples: ['Bearer: <Access токен>'] }),
+    authorization: t.String({ default: 'Bearer: <access token>' }),
 });
 
 export const RefreshSchema = t.Cookie({

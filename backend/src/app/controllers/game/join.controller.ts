@@ -37,6 +37,5 @@ export const joinGame = async ({
     return {
         success: true,
         message: 'Joined successfully',
-        gameId: game.id,
     };
 };

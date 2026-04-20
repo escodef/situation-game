@@ -27,8 +27,8 @@ export const CreateGameSchema = t.Object({
 });
 
 export const GetGamesSchema = t.Object({
-    page: t.Number({ minimum: 1 }),
-    take: t.Number({ maximum: 20 }),
+    page: t.Number({ minimum: 1, default: 1 }),
+    take: t.Number({ maximum: 20, default: 10 }),
 });
 
 export const GetGameByIdSchema = t.Object({ id: t.String({ format: 'uuid' }) });
