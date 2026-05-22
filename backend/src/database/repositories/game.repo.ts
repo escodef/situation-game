@@ -63,7 +63,8 @@ export const GameRepo = {
                 g.created_at AS "createdAt", 
                 g.is_open AS "isOpen"
             FROM games g
-            WHERE g.id = $1 OR g.code = $1;
+            WHERE g.id = $1 OR g.code = $1
+            FOR UPDATE;
         `;
         const { rows } = await client.query<IGame>(sql, [codeOrId]);
         return rows[0];

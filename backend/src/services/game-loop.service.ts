@@ -103,11 +103,14 @@ export const GameLoopService = {
         }
     },
 
-    async startNextRound(gameId: string, lastRoundId: string) {
+    async startNextRound(gameId: string, lastRoundId?: string) {
         const client = await db.connect();
         try {
             await client.query('BEGIN');
-            const lastRound = await GameRoundRepo.findById(lastRoundId, client);
+            let lastRound: Awaited<ReturnType<typeof GameRoundRepo.findById>>;
+            if (lastRoundId) {
+                lastRound = await GameRoundRepo.findById(lastRoundId, client);
+            }
             const situation = await SituationPackRepo.getRandomForGame(gameId, client);
 
             if (!situation) {

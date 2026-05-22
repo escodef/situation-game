@@ -11,8 +11,10 @@ import {
 export const processStartGame: TSocketProcessor<TStartGamePayload> = async (ws: TElysiaWS) => {
     const client = await db.connect();
 
+    const { userId } = ws.data;
+    let gameIdToStart: string | null = null;
+
     try {
-        const { userId } = ws.data;
         await client.query('BEGIN');
 
         const game = await GameRepo.findByOwnerId(userId, client);
@@ -35,7 +37,7 @@ export const processStartGame: TSocketProcessor<TStartGamePayload> = async (ws: 
 
         await client.query('COMMIT');
 
-        await GameLoopService.startNextRound(game.id, '');
+        gameIdToStart = game.id;
     } catch (error) {
         await client.query('ROLLBACK');
         console.error('processStartGame() error:', error);
@@ -44,5 +46,9 @@ export const processStartGame: TSocketProcessor<TStartGamePayload> = async (ws: 
         );
     } finally {
         client.release();
+    }
+
+    if (gameIdToStart) {
+        await GameLoopService.startNextRound(gameIdToStart);
     }
 };

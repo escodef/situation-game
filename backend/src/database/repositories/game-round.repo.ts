@@ -24,8 +24,11 @@ export const GameRoundRepo = {
         id: string,
         client: Queryable = db,
     ): Promise<Pick<IGameRound, 'id' | 'gameId' | 'status' | 'roundNumber'> | undefined> {
-        const sql =
-            'SELECT id, game_id as "gameId", status, round_number as "roundNumber" FROM "game_rounds" WHERE id = $1';
+        const sql = `
+            SELECT id, game_id as "gameId", status, round_number as "roundNumber" 
+            FROM "game_rounds"
+            WHERE id = $1
+            FOR UPDATE;`;
         const { rows } = await client.query<IGameRound>(sql, [id]);
         return rows[0];
     },
@@ -61,6 +64,7 @@ export const GameRoundRepo = {
             WHERE game_id = $1
             ORDER BY round_number DESC
             LIMIT 1
+            FOR UPDATE;
         `;
         const { rows } = await client.query<IGameRound>(sql, [gameId]);
         return rows[0];

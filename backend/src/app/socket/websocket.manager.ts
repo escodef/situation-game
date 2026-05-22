@@ -98,10 +98,11 @@ export const handleConnect = async (ws: TElysiaWS) => {
 
 export const handleDisconnect = async (userId: string) => {
     users.delete(userId);
-    const user = await UserRepo.findWithGame(userId);
 
     setTimeout(async () => {
         if (users.has(userId)) return;
+
+        const user = await UserRepo.findWithGame(userId);
 
         if (user?.gameId) {
             await UserRepo.leaveGame(userId);

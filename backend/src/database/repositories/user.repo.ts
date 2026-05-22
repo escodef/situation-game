@@ -11,7 +11,7 @@ export const UserRepo = {
     async findWithGame(userId: string, client: Queryable = db): Promise<IUserPublic | null> {
         const sql = `
         SELECT 
-            u.id, u.nickname, u.email, u.roles, u.created_at as "created_at", u.score, u.game_id as "gameId",
+            u.id, u.nickname, u.email, u.roles, u.created_at as "createdAt", u.score, u.game_id as "gameId",
             g.id as "g_id", g.code as "g_code", g.status as "g_status", g.owner_id as "g_owner_id"
         FROM "users" u
         LEFT JOIN "games" g ON u.game_id = g.id

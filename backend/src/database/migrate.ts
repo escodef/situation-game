@@ -7,6 +7,8 @@ const MIGRATIONS_DIR = path.resolve(import.meta.dirname, './migrations');
 async function runMigrations() {
     const client = await db.connect();
 
+    await client.query('SELECT pg_advisory_lock(1337)');
+
     await client.query(`
         CREATE TABLE IF NOT EXISTS _migrations (
             id SERIAL PRIMARY KEY,
@@ -42,6 +44,7 @@ async function runMigrations() {
             }
         }
     }
+    await client.query('SELECT pg_advisory_unlock(1337)');
     client.release();
 }
 

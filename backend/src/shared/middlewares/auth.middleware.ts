@@ -4,7 +4,7 @@ import { verifyAccessToken } from 'shared/utils';
 import { UnauthorizedError } from '../errors';
 
 export const authenticate = new Elysia().derive({ as: 'global' }, async ({ headers, set }) => {
-    const authHeader = headers['authorization'];
+    const authHeader = headers.authorization;
     const token = authHeader?.split(' ')[1];
 
     if (!token) {

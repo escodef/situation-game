@@ -23,7 +23,7 @@ export const refreshToken = async ({
 
     const storedSession = await SessionRepo.findByOldRefresh(oldRefreshToken);
 
-    if (!storedSession?.user?.id || new Date() > storedSession.expiresAt) {
+    if (!storedSession?.user?.id) {
         throw new UnauthorizedError('Сессия не найдена или токен протух');
     }
 

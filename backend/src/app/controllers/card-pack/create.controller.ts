@@ -1,6 +1,6 @@
+import { randomUUID } from 'node:crypto';
 import { CardPackRepo, db } from 'database';
 import type { Context } from 'elysia';
-import { randomUUID } from 'node:crypto';
 import { deleteFile, uploadFile } from 's3/util';
 import type { CreateCardPackDto, TokenPayload } from 'shared';
 
@@ -19,11 +19,11 @@ export const createCardPack = async ({
         const uploadTasks = cards.map(async (file: File) => {
             const ext = file.name.split('.').pop();
             const key = `cards/${randomUUID()}.${ext}`;
+            uploadedKeys.push(key);
 
             const buffer = new Uint8Array(await file.arrayBuffer());
             const url = await uploadFile(key, buffer, file.type);
 
-            uploadedKeys.push(key);
             return url;
         });
 
