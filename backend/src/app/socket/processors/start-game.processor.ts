@@ -23,10 +23,10 @@ export const processStartGame: TSocketProcessor<TStartGamePayload> = async (ws: 
         const players = await UserRepo.getPlayersByGameId(game.id, client);
         if (players.length < 2) {
             ws.send(
-                JSON.stringify({
+                {
                     event: ESocketOutcomeEvent.ERROR,
                     data: 'Нужно минимум 2 игрока',
-                }),
+                },
             );
             return;
         }
@@ -42,7 +42,7 @@ export const processStartGame: TSocketProcessor<TStartGamePayload> = async (ws: 
         await client.query('ROLLBACK');
         console.error('processStartGame() error:', error);
         ws.send(
-            JSON.stringify({ event: ESocketOutcomeEvent.ERROR, data: 'Ошибка сервера при старте' }),
+            { event: ESocketOutcomeEvent.ERROR, data: 'Ошибка сервера при старте' },
         );
     } finally {
         client.release();

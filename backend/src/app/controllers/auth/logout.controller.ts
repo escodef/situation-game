@@ -10,7 +10,7 @@ export const logoutUser = async ({
     const token = authHeader?.split(' ')[1];
 
     if (!token) {
-        return new UnauthorizedError('Токен не валиден');
+        throw new UnauthorizedError('Токен не валиден');
     }
 
     await SessionRepo.deleteByAccess(token);

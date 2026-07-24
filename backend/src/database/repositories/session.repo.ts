@@ -8,27 +8,42 @@ export const SessionRepo = {
         return rows[0];
     },
 
-    async findByOldRefresh(oldRefreshToken: string): Promise<ISession | undefined> {
+    async findLatestByUserId(userId: string): Promise<ISession | undefined> {
         const sql = `
             SELECT 
-                s.id, 
-                s.access_token AS "accessToken",
-                s.refresh_token AS "refreshToken", 
-                s.expires_at AS "expiresAt", 
-                s.created_at AS "createdAt",
-                s.user_id AS "userId",
-                json_build_object(
-                    'id', u.id,
-                    'nickname', u.nickname,
-                    'email', u.email,
-                    'roles', u.roles
-                ) AS user
-            FROM "sessions" s
-            JOIN "users" u ON s.user_id = u.id
-            WHERE s.refresh_token = $1;
+                id, 
+                user_id AS "userId",
+                access_token AS "accessToken", 
+                refresh_token AS "refreshToken", 
+                expires_at AS "expiresAt"
+            FROM "sessions"
+            WHERE user_id = $1 AND expires_at > NOW()
+            ORDER BY created_at DESC
+            LIMIT 1;
         `;
+        const { rows } = await db.query<ISession>(sql, [userId]);
+        return rows[0];
+    },
 
-        const { rows } = await db.query<ISession>(sql, [oldRefreshToken]);
+    async rotateSession(
+        oldRefreshToken: string,
+        newAccessToken: string,
+        newRefreshToken: string,
+    ): Promise<ISession | undefined> {
+        const expiresAt = new Date(Date.now() + AUTH_CONFIG.refreshExpiresMs);
+
+        const sql = `
+            UPDATE "sessions"
+            SET access_token = $1, refresh_token = $2, expires_at = $3
+            WHERE refresh_token = $4 AND expires_at > NOW()
+            RETURNING id, user_id AS "userId", access_token AS "accessToken", refresh_token AS "refreshToken", expires_at AS "expiresAt";
+        `;
+        const { rows } = await db.query<ISession>(sql, [
+            newAccessToken,
+            newRefreshToken,
+            expiresAt,
+            oldRefreshToken,
+        ]);
         return rows[0];
     },
 
@@ -47,8 +62,7 @@ export const SessionRepo = {
         accessToken: string;
         refreshToken: string;
     }): Promise<ISession | undefined> {
-        const refreshExpires = AUTH_CONFIG.refreshExpiresMs;
-        const expiresAt = new Date(Date.now() + refreshExpires);
+        const expiresAt = new Date(Date.now() + AUTH_CONFIG.refreshExpiresMs);
         const sql = `
             INSERT INTO "sessions" (user_id, access_token, refresh_token, expires_at)
             VALUES ($1, $2, $3, $4)

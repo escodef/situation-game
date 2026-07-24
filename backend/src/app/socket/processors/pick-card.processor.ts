@@ -15,25 +15,24 @@ export const processPickCard: TSocketProcessor<TPickCardPayload> = async (ws: TE
     const { cardId, roundId } = data;
     const client = await db.connect();
 
+    let shouldFinishPicking = false;
+    let gameIdToFinish: string | null = null;
+
     try {
         await client.query('BEGIN');
 
         const round = await GameRoundRepo.findById(roundId, client);
         if (!round || round.status !== ERoundStatus.PICKING) {
-            ws.send(
-                JSON.stringify({
-                    event: ESocketOutcomeEvent.ERROR,
-                    data: 'Сейчас нельзя выбирать карты',
-                }),
-            );
+            ws.send({
+                event: ESocketOutcomeEvent.ERROR,
+                data: 'Сейчас нельзя выбирать карты',
+            });
             return;
         }
 
         const alreadyMoved = await PlayerMoveRepo.hasUserMoved(roundId, userId, client);
         if (alreadyMoved) {
-            ws.send(
-                JSON.stringify({ event: ESocketOutcomeEvent.ERROR, data: 'Вы уже сделали ход' }),
-            );
+            ws.send({ event: ESocketOutcomeEvent.ERROR, data: 'Вы уже сделали ход' });
             return;
         }
 
@@ -45,12 +44,10 @@ export const processPickCard: TSocketProcessor<TPickCardPayload> = async (ws: TE
         );
 
         if (!cardTaken) {
-            ws.send(
-                JSON.stringify({
-                    event: ESocketOutcomeEvent.ERROR,
-                    data: 'Этой карты нет в вашей руке',
-                }),
-            );
+            ws.send({
+                event: ESocketOutcomeEvent.ERROR,
+                data: 'Этой карты нет в вашей руке',
+            });
             return;
         }
 
@@ -70,37 +67,25 @@ export const processPickCard: TSocketProcessor<TPickCardPayload> = async (ws: TE
         );
 
         if (movesCount >= playersCount) {
-            await GameRoundRepo.updateStatus(roundId, ERoundStatus.SHOWING, client);
-
-            const job = await gameQueue.getJob(`picking:${roundId}`);
-            if (job) await job.remove();
-            await GameLoopService.finishPicking(round.gameId, roundId);
-
-            sendToGame(
-                ws,
-                round.gameId,
-                {
-                    event: ESocketOutcomeEvent.ROUND_STAGE_CHANGED,
-                    data: {
-                        status: ERoundStatus.SHOWING,
-                        moves: await PlayerMoveRepo.getMovesWithCards(roundId, client),
-                    },
-                },
-                true,
-            );
+            shouldFinishPicking = true;
+            gameIdToFinish = round.gameId;
         }
 
         await client.query('COMMIT');
     } catch (error) {
         await client.query('ROLLBACK');
         console.error('processPickCard() error:', error);
-        ws.send(
-            JSON.stringify({
-                event: ESocketOutcomeEvent.ERROR,
-                data: 'Ошибка сервера при выборе карты',
-            }),
-        );
+        ws.send({
+            event: ESocketOutcomeEvent.ERROR,
+            data: 'Ошибка сервера при выборе карты',
+        });
     } finally {
         client.release();
+    }
+
+    if (shouldFinishPicking && gameIdToFinish) {
+        const job = await gameQueue.getJob(`picking:${roundId}`);
+        if (job) await job.remove();
+        await GameLoopService.finishPicking(gameIdToFinish, roundId);
     }
 };

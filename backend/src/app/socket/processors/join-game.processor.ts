@@ -14,12 +14,10 @@ export const processJoinGame: TSocketProcessor<TJoinGamePayload> = async (ws: TE
     const user = await UserRepo.findById(userId);
 
     if (!user?.gameId || user.gameId !== gameId) {
-        ws.send(
-            JSON.stringify({
-                event: ESocketOutcomeEvent.ERROR,
-                data: 'Ошибка при попытке зайти в игру',
-            }),
-        );
+        ws.send({
+            event: ESocketOutcomeEvent.ERROR,
+            data: 'Ошибка при попытке зайти в игру',
+        });
         return;
     }
 

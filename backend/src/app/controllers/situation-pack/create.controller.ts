@@ -32,8 +32,13 @@ export const createSituationPack = async ({
             success: true,
             situationPackId: resp.id,
         };
-    } catch {
+    } catch (error) {
+        console.error('createSituationPack() Error:', error);
         await client.query('ROLLBACK');
+        return {
+            success: false,
+            message: 'Internal server error',
+        };
     } finally {
         client.release();
     }

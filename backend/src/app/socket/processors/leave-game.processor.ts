@@ -7,6 +7,7 @@ import {
     UserRepo,
     VoteRepo,
 } from 'database';
+import { gameQueue } from 'queue';
 import { GameLoopService } from 'services';
 import {
     EGameStatus,
@@ -20,8 +21,11 @@ import { sendToGame } from '../websocket.manager';
 
 export const processLeaveGame: TSocketProcessor<TLeaveGamePayload> = async (ws: TElysiaWS) => {
     const { userId } = ws.data;
-
     const client = await db.connect();
+
+    let triggerFinishPickingRoundId: string | null = null;
+    let triggerFinishVotingRoundId: string | null = null;
+    let currentGameId: string | null = null;
 
     try {
         await client.query('BEGIN');
@@ -31,6 +35,8 @@ export const processLeaveGame: TSocketProcessor<TLeaveGamePayload> = async (ws: 
         if (!user?.gameId) {
             throw new Error();
         }
+
+        currentGameId = user.gameId;
 
         await UserRepo.leaveGame(userId, client);
 
@@ -48,12 +54,14 @@ export const processLeaveGame: TSocketProcessor<TLeaveGamePayload> = async (ws: 
             const round = await GameRoundRepo.findCurrentRound(user.gameId, client);
             if (round && round.status === ERoundStatus.PICKING) {
                 const movesCount = await PlayerMoveRepo.countMovesInRound(round.id, client);
-                if (movesCount >= playersCount)
-                    await GameLoopService.finishPicking(user.gameId, round.id);
+                if (movesCount >= playersCount) {
+                    triggerFinishPickingRoundId = round.id;
+                }
             } else if (round && round.status === ERoundStatus.VOTING) {
                 const votes = await VoteRepo.findByRound(round.id, client);
-                if (votes.length >= playersCount)
-                    await GameLoopService.finishVoting(user.gameId, round.id);
+                if (votes.length >= playersCount) {
+                    triggerFinishVotingRoundId = round.id;
+                }
             }
         }
 
@@ -71,13 +79,21 @@ export const processLeaveGame: TSocketProcessor<TLeaveGamePayload> = async (ws: 
     } catch (error) {
         await client.query('ROLLBACK');
         console.error('processLeaveGame() error:', error);
-        ws.send(
-            JSON.stringify({
-                event: ESocketOutcomeEvent.ERROR,
-                data: 'Ошибка сервера при выходе из игры',
-            }),
-        );
+        ws.send({
+            event: ESocketOutcomeEvent.ERROR,
+            data: 'Ошибка сервера при выходе из игры',
+        });
     } finally {
         client.release();
+    }
+
+    if (currentGameId && triggerFinishPickingRoundId) {
+        const job = await gameQueue.getJob(`picking:${triggerFinishPickingRoundId}`);
+        if (job) await job.remove();
+        await GameLoopService.finishPicking(currentGameId, triggerFinishPickingRoundId);
+    } else if (currentGameId && triggerFinishVotingRoundId) {
+        const job = await gameQueue.getJob(`voting:${triggerFinishVotingRoundId}`);
+        if (job) await job.remove();
+        await GameLoopService.finishVoting(currentGameId, triggerFinishVotingRoundId);
     }
 };

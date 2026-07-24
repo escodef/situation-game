@@ -1,6 +1,6 @@
 import { getOrThrow } from './utils';
 
-export const dayInMS = 7 * 24 * 60 * 60 * 1000;
+export const dayInMS = 24 * 60 * 60 * 1000;
 
 export const AUTH_CONFIG = {
     accessExpires: parseInt(getOrThrow(Bun.env.JWT_ACCESS_EXPIRES_IN), 10),

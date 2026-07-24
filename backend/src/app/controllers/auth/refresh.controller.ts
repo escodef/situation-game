@@ -1,6 +1,6 @@
 import { SessionRepo } from 'database';
 import type { Cookie } from 'elysia';
-import { dayInMS, generateTokens, UnauthorizedError, verifyRefreshToken } from 'shared';
+import { AUTH_CONFIG, generateTokens, UnauthorizedError, verifyRefreshToken } from 'shared';
 
 export const refreshToken = async ({
     cookie,
@@ -21,30 +21,34 @@ export const refreshToken = async ({
         throw new UnauthorizedError('Невалидный токен');
     }
 
-    const storedSession = await SessionRepo.findByOldRefresh(oldRefreshToken);
+    let tokens = generateTokens({
+        userId: decoded.userId,
+    });
 
-    if (!storedSession?.user?.id) {
-        throw new UnauthorizedError('Сессия не найдена или токен протух');
+    const rotatedSession = await SessionRepo.rotateSession(
+        oldRefreshToken,
+        tokens.accessToken,
+        tokens.refreshToken,
+    );
+
+    if (!rotatedSession) {
+        const activeSession = await SessionRepo.findLatestByUserId(decoded.userId);
+        if (!activeSession) {
+            throw new UnauthorizedError('Сессия не найдена или токен протух');
+        }
+
+        tokens = {
+            accessToken: activeSession.accessToken,
+            refreshToken: activeSession.refreshToken,
+        };
     }
-
-    await SessionRepo.deleteByRefresh(oldRefreshToken);
-
-    const tokens = generateTokens({
-        userId: storedSession.user.id,
-    });
-
-    await SessionRepo.create({
-        userId: storedSession.user.id,
-        accessToken: tokens.accessToken,
-        refreshToken: tokens.refreshToken,
-    });
 
     refreshToken.set({
         value: tokens.refreshToken,
         httpOnly: true,
         secure: true,
         sameSite: 'strict',
-        maxAge: (7 * dayInMS) / 1000,
+        maxAge: AUTH_CONFIG.refreshExpires,
         path: '/',
     });
 

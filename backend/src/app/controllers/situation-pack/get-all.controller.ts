@@ -21,7 +21,7 @@ export const getAllSituationPacks = async ({
             totalCount: total,
             totalPages,
             currentPage: page,
-            hasPrepage: page > 1,
+            hasPrevPage: page > 1,
             hasNextPage: page < totalPages,
         },
     };

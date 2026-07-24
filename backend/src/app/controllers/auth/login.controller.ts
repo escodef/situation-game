@@ -1,6 +1,6 @@
 import { SessionRepo, UserRepo } from 'database';
 import type { Context } from 'elysia';
-import { generateTokens, type LoginDto, UnauthorizedError } from 'shared';
+import { AUTH_CONFIG, generateTokens, type LoginDto, UnauthorizedError } from 'shared';
 
 export const loginUser = async ({
     body,
@@ -33,7 +33,7 @@ export const loginUser = async ({
         secure: true,
         sameSite: 'strict',
         path: '/',
-        maxAge: 30 * 24 * 60 * 60,
+        maxAge: AUTH_CONFIG.refreshExpires,
     });
 
     const { password: _, ...userPublicData } = user;

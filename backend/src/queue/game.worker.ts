@@ -15,6 +15,9 @@ export const gameWorker = new Worker(
             case EGameJob.END_VOTING:
                 await GameLoopService.finishVoting(gameId, roundId);
                 break;
+            case EGameJob.START_NEXT_ROUND:
+                await GameLoopService.startNextRound(gameId, roundId);
+                break;
         }
     },
     { connection: valkeyConnection },

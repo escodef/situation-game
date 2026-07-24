@@ -8,6 +8,6 @@ export const user = new Elysia({
 })
     .use(authenticate)
     .get('/me', (ctx) => getMe(ctx))
-    .get('/:id', ({ params: { userId } }) => getUser(userId), {
-        params: t.Object({ userId: t.String({ format: 'uuid' }) }),
+    .get('/:id', ({ params: { id } }) => getUser(id), {
+        params: t.Object({ id: t.String({ format: 'uuid' }) }),
     });

@@ -23,10 +23,10 @@ export const processVote: TSocketProcessor<TVotePayload> = async (ws: TElysiaWS,
 
         if (!user?.gameId) {
             ws.send(
-                JSON.stringify({
+                {
                     event: ESocketOutcomeEvent.ERROR,
                     data: 'Вы не являетесь участником этой игры',
-                }),
+                },
             );
             return;
         }
@@ -37,10 +37,10 @@ export const processVote: TSocketProcessor<TVotePayload> = async (ws: TElysiaWS,
 
         if (!curRound || curRound.status !== ERoundStatus.VOTING) {
             ws.send(
-                JSON.stringify({
+                {
                     event: ESocketOutcomeEvent.ERROR,
                     data: 'Голосование сейчас недоступно',
-                }),
+                },
             );
             return;
         }
@@ -48,7 +48,7 @@ export const processVote: TSocketProcessor<TVotePayload> = async (ws: TElysiaWS,
         const existingVotes = await VoteRepo.findByRound(curRound.id, client);
         if (existingVotes.some((v) => v.voterId === userId)) {
             ws.send(
-                JSON.stringify({ event: ESocketOutcomeEvent.ERROR, data: 'Вы уже проголосовали' }),
+                { event: ESocketOutcomeEvent.ERROR, data: 'Вы уже проголосовали' },
             );
             return;
         }
@@ -78,10 +78,10 @@ export const processVote: TSocketProcessor<TVotePayload> = async (ws: TElysiaWS,
         await client.query('ROLLBACK');
         console.error('processVote() error:', error);
         ws.send(
-            JSON.stringify({
+            {
                 event: ESocketOutcomeEvent.ERROR,
                 data: 'Ошибка сервера при голосовании',
-            }),
+            },
         );
     } finally {
         client.release();

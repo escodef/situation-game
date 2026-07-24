@@ -18,11 +18,17 @@ export const GameLoopService = {
         const client = await db.connect();
         try {
             await client.query('BEGIN');
-            const round = await GameRoundRepo.findById(roundId, client);
-            if (!round || round.status !== ERoundStatus.PICKING) return;
+            const updateRes = await client.query(
+                'UPDATE "game_rounds" SET status = $1 WHERE id = $2 AND status = $3 RETURNING id',
+                [ERoundStatus.VOTING, roundId, ERoundStatus.PICKING],
+            );
+
+            if (updateRes.rowCount === 0) {
+                await client.query('ROLLBACK');
+                return;
+            }
 
             await PlayerMoveRepo.forceRandomMoves(roundId, client);
-            await GameRoundRepo.updateStatus(roundId, ERoundStatus.VOTING, client);
 
             const moves = await PlayerMoveRepo.getMovesWithCards(roundId, client);
 
@@ -49,8 +55,18 @@ export const GameLoopService = {
         try {
             await client.query('BEGIN');
 
-            const game = await GameRepo.findOne(gameId, client);
+            const updateRes = await client.query(
+                'UPDATE "game_rounds" SET status = $1 WHERE id = $2 AND status = $3 RETURNING id',
+                [ERoundStatus.FINISHED, roundId, ERoundStatus.VOTING],
+            );
+
+            if (updateRes.rowCount === 0) {
+                await client.query('ROLLBACK');
+                return;
+            }
+
             const round = await GameRoundRepo.findById(roundId, client);
+            const game = await GameRepo.findOne(gameId, client);
             if (!game || !round) throw new Error('Not found');
 
             const votes = await VoteRepo.findByRound(roundId, client);
@@ -59,22 +75,32 @@ export const GameLoopService = {
                 voteCounts[v.targetUserId] = (voteCounts[v.targetUserId] || 0) + 1;
             });
 
-            let winnerId = null;
             let maxVotes = 0;
-            for (const [uId, count] of Object.entries(voteCounts)) {
-                if (count > maxVotes) {
-                    maxVotes = count;
-                    winnerId = uId;
+            for (const count of Object.values(voteCounts)) {
+                if (count > maxVotes) maxVotes = count;
+            }
+
+            const winnerIds: string[] = [];
+            if (maxVotes > 0) {
+                for (const [uId, count] of Object.entries(voteCounts)) {
+                    if (count === maxVotes) winnerIds.push(uId);
                 }
             }
-            if (winnerId) await UserRepo.incrementScore(winnerId, 1, client);
 
-            await GameRoundRepo.updateStatus(roundId, ERoundStatus.FINISHED, client);
+            for (const wId of winnerIds) {
+                await UserRepo.incrementScore(wId, 1, client);
+            }
+
             const players = await UserRepo.getPlayersByGameId(gameId, client);
 
             sendToGameRoom(gameId, {
                 event: ESocketOutcomeEvent.ROUND_STAGE_CHANGED,
-                data: { status: ERoundStatus.FINISHED, winnerId, players },
+                data: {
+                    status: ERoundStatus.FINISHED,
+                    winnerIds,
+                    winnerId: winnerIds[0] || null,
+                    players,
+                },
             });
 
             if (round.roundNumber >= game.maxRounds) {
@@ -94,7 +120,7 @@ export const GameLoopService = {
             }
 
             await client.query('COMMIT');
-            setTimeout(() => this.startNextRound(gameId, roundId), 5000);
+            await this.scheduleStartNextRound(gameId, roundId, 5000);
         } catch (error) {
             console.error('finishVoting Error:', inspect(error));
             await client.query('ROLLBACK');
@@ -123,6 +149,8 @@ export const GameLoopService = {
                 await client.query('COMMIT');
                 return;
             }
+
+            await PlayerHandRepo.ensureHandFilled(gameId, client);
 
             const endsAt = new Date(Date.now() + 60000);
             const nextRound = await GameRoundRepo.create(
@@ -180,6 +208,14 @@ export const GameLoopService = {
             EGameJob.END_VOTING,
             { gameId, roundId },
             { delay: delayMs, jobId: `voting:${roundId}` },
+        );
+    },
+
+    async scheduleStartNextRound(gameId: string, roundId: string, delayMs: number = 5000) {
+        await gameQueue.add(
+            EGameJob.START_NEXT_ROUND,
+            { gameId, roundId },
+            { delay: delayMs, jobId: `next_round:${roundId}` },
         );
     },
 };

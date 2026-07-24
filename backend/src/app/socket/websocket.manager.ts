@@ -1,13 +1,17 @@
+import { randomUUID } from 'bullmq';
 import {
     GameRepo,
     GameRoundRepo,
     PlayerHandRepo,
     PlayerMoveRepo,
     UserRepo,
+    VoteRepo,
     valkeyConnection,
     valkeySubscriber,
 } from 'database';
 import type { Server } from 'elysia/universal';
+import { gameQueue } from 'queue';
+import { GameLoopService } from 'services';
 import {
     EGameStatus,
     ERoundStatus,
@@ -17,6 +21,7 @@ import {
     type TSocketOutcomeMessage,
 } from 'shared';
 
+const INSTANCE_ID = randomUUID();
 const users: Map<string, TElysiaWS> = new Map();
 let appServer: Server | null = null;
 
@@ -34,7 +39,8 @@ export const initWebsocketManager = (server: Server) => {
         if (channel !== CHANNEL_NAME) return;
 
         try {
-            const { type, targetId, senderId, includeSelf, message } = JSON.parse(messageStr);
+            const { type, targetId, senderId, senderInstanceId, includeSelf, message } =
+                JSON.parse(messageStr);
             const payload = JSON.stringify(message);
 
             if (type === 'user') {
@@ -44,9 +50,13 @@ export const initWebsocketManager = (server: Server) => {
                 if (includeSelf) {
                     appServer?.publish(targetId, payload);
                 } else {
-                    const senderWs = users.get(senderId);
-                    if (senderWs) {
-                        senderWs.publish(targetId, payload);
+                    if (senderInstanceId === INSTANCE_ID) {
+                        const senderWs = users.get(senderId);
+                        if (senderWs) {
+                            senderWs.publish(targetId, payload);
+                        } else {
+                            appServer?.publish(targetId, payload);
+                        }
                     } else {
                         appServer?.publish(targetId, payload);
                     }
@@ -60,6 +70,8 @@ export const initWebsocketManager = (server: Server) => {
 
 export const handleConnect = async (ws: TElysiaWS) => {
     const userId = ws.data.userId;
+
+    await valkeyConnection.set(`presence:${userId}`, 'online');
 
     const existingWs = users.get(userId);
     if (existingWs) {
@@ -99,8 +111,11 @@ export const handleConnect = async (ws: TElysiaWS) => {
 export const handleDisconnect = async (userId: string) => {
     users.delete(userId);
 
+    await valkeyConnection.set(`presence:${userId}`, 'offline', 'EX', 30);
+
     setTimeout(async () => {
-        if (users.has(userId)) return;
+        const presence = await valkeyConnection.get(`presence:${userId}`);
+        if (presence === 'online') return;
 
         const user = await UserRepo.findWithGame(userId);
 
@@ -122,6 +137,23 @@ export const handleDisconnect = async (userId: string) => {
                     event: ESocketOutcomeEvent.ERROR,
                     data: 'Игроки покинули игру. Игра завершена досрочно.',
                 });
+            } else if (user.game?.status === EGameStatus.STARTED) {
+                const round = await GameRoundRepo.findCurrentRound(user.gameId);
+                if (round && round.status === ERoundStatus.PICKING) {
+                    const movesCount = await PlayerMoveRepo.countMovesInRound(round.id);
+                    if (movesCount >= playersCount) {
+                        const job = await gameQueue.getJob(`picking:${round.id}`);
+                        if (job) await job.remove();
+                        await GameLoopService.finishPicking(user.gameId, round.id);
+                    }
+                } else if (round && round.status === ERoundStatus.VOTING) {
+                    const votes = await VoteRepo.findByRound(round.id);
+                    if (votes.length >= playersCount) {
+                        const job = await gameQueue.getJob(`voting:${round.id}`);
+                        if (job) await job.remove();
+                        await GameLoopService.finishVoting(user.gameId, round.id);
+                    }
+                }
             }
         }
     }, 30000);
@@ -170,6 +202,7 @@ export const sendToGame = (
             type: 'room',
             targetId: gameId,
             senderId: ws.data.userId,
+            senderInstanceId: INSTANCE_ID,
             includeSelf,
             message,
         }),
