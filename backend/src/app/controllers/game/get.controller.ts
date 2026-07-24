@@ -8,32 +8,23 @@ export const getGames = async ({
 }: Pick<Context, 'set'> & {
     query: GetGamesDto;
 }) => {
-    try {
-        const offset = (page - 1) * take;
+    const offset = (page - 1) * take;
 
-        const { games, total } = await GameRepo.findOpenGames(take, offset);
+    const { games, total } = await GameRepo.findOpenGames(take, offset);
 
-        const totalPages = Math.ceil(total / take);
+    const totalPages = Math.ceil(total / take);
 
-        set.status = 200;
+    set.status = 200;
 
-        return {
-            success: true,
-            data: games,
-            meta: {
-                totalCount: total,
-                totalPages,
-                currentPage: page,
-                hasPrepage: page > 1,
-                hasNextPage: page < totalPages,
-            },
-        };
-    } catch (error) {
-        console.error('getGames() Error:', error);
-        set.status = 500;
-        return {
-            success: false,
-            message: 'Internal server error',
-        };
-    }
+    return {
+        success: true,
+        data: games,
+        meta: {
+            totalCount: total,
+            totalPages,
+            currentPage: page,
+            hasPrepage: page > 1,
+            hasNextPage: page < totalPages,
+        },
+    };
 };

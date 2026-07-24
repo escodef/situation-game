@@ -1,6 +1,6 @@
 import { db, GameRepo, UserRepo } from 'database';
 import { type Context, NotFoundError } from 'elysia';
-import { EGameStatus, type JoinGameDto, type TokenPayload } from 'shared';
+import { BadRequestError, EGameStatus, type JoinGameDto, type TokenPayload } from 'shared';
 
 export const joinGame = async ({
     body,
@@ -22,19 +22,17 @@ export const joinGame = async ({
         }
 
         if ('gameId' in body && !game.isOpen && !('code' in body)) {
-            set.status = 400;
-            throw new Error('В закрытую игру нужен код');
+            throw new BadRequestError('В закрытую игру нужен код');
+            
         }
 
         if (game.status !== EGameStatus.WAITING) {
-            set.status = 400;
-            throw new Error('Игра уже идёт');
+            throw new BadRequestError('Игра уже идёт');
         }
 
         const playersCount = await UserRepo.countPlayersInGame(game.id, client);
         if (playersCount >= game.maxPlayers) {
-            set.status = 400;
-            throw new Error('В игре нет свободных мест');
+            throw new BadRequestError('В игре нет свободных мест');
         }
 
         await UserRepo.joinGame(user.userId, game.id, client);
@@ -47,8 +45,7 @@ export const joinGame = async ({
         };
     } catch (error) {
         await client.query('ROLLBACK');
-        if (error instanceof NotFoundError) throw error;
-        return { success: false, message: error instanceof Error ? error.message : 'Ошибка' };
+        throw error;
     } finally {
         client.release();
     }

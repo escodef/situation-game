@@ -52,7 +52,6 @@ export const createCardPack = async ({
             await Promise.allSettled(uploadedKeys.map((key) => deleteFile(key)));
         }
 
-        set.status = 500;
         return { success: false, message: 'Не удалось создать пак' };
     }
 };

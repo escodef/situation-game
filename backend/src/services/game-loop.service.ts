@@ -143,8 +143,11 @@ export const GameLoopService = {
                 await GameRepo.updateStatus(gameId, EGameStatus.FINISHED, client);
                 await PlayerHandRepo.clearAllGameData(gameId, client);
                 sendToGameRoom(gameId, {
-                    event: ESocketOutcomeEvent.ERROR,
-                    data: 'Ситуации закончились. Игра завершена.',
+                    event: ESocketOutcomeEvent.ROUND_STAGE_CHANGED,
+                    data: {
+                        status: EGameStatus.FINISHED,
+                        reason: 'Ситуации закончились. Игра завершена.',
+                    },
                 });
                 await client.query('COMMIT');
                 return;
