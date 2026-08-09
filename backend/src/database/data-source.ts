@@ -3,11 +3,7 @@ import { Pool } from 'pg';
 import { getOrThrow } from 'shared';
 
 const db = new Pool({
-    user: getOrThrow(Bun.env.DB_USER),
-    host: getOrThrow(Bun.env.DB_HOST),
-    database: getOrThrow(Bun.env.DB_NAME),
-    password: getOrThrow(Bun.env.DB_PASSWORD),
-    port: 5432,
+    connectionString: getOrThrow(Bun.env.DATABASE_URL),
     max: 20,
     connectionTimeoutMillis: 2000,
 });

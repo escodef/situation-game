@@ -1,9 +1,10 @@
 import { initWebsocketManager } from 'app/socket';
-import { seedAdmin, seedSituations } from 'database';
+import { runMigrations, seedAdmin, seedSituations } from 'database';
 import { getOrThrow } from 'shared';
 import { createApp } from './app/server';
 
 async function bootstrap() {
+    await runMigrations();
     await seedSituations();
     await seedAdmin();
 
