@@ -33,7 +33,7 @@ export const processLeaveGame: TSocketProcessor<TLeaveGamePayload> = async (ws: 
         const user = await UserRepo.findWithGame(userId, client);
 
         if (!user?.gameId) {
-            throw new Error();
+            throw new Error('Пользователь не в игре');
         }
 
         currentGameId = user.gameId;
@@ -52,12 +52,12 @@ export const processLeaveGame: TSocketProcessor<TLeaveGamePayload> = async (ws: 
             );
         } else if (user.game?.status === EGameStatus.STARTED) {
             const round = await GameRoundRepo.findCurrentRound(user.gameId, client);
-            if (round && round.status === ERoundStatus.PICKING) {
+            if (round?.status === ERoundStatus.PICKING) {
                 const movesCount = await PlayerMoveRepo.countMovesInRound(round.id, client);
                 if (movesCount >= playersCount) {
                     triggerFinishPickingRoundId = round.id;
                 }
-            } else if (round && round.status === ERoundStatus.VOTING) {
+            } else if (round?.status === ERoundStatus.VOTING) {
                 const votes = await VoteRepo.findByRound(round.id, client);
                 if (votes.length >= playersCount) {
                     triggerFinishVotingRoundId = round.id;

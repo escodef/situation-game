@@ -112,7 +112,7 @@ export const GameLoopService = {
                     event: ESocketOutcomeEvent.ROUND_STAGE_CHANGED,
                     data: {
                         status: EGameStatus.FINISHED,
-                        finalScores: players.sort((a, b) => b.score - a.score),
+                        finalScores: players.toSorted((a, b) => b.score - a.score),
                     },
                 });
                 await client.query('COMMIT');

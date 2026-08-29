@@ -4136,7 +4136,7 @@ export const seedSituations = async () => {
             ['Стандартный'],
         );
 
-        if (parseInt(rows[0].count, 10) > 0) {
+        if (Number.parseInt(rows[0].count, 10) > 0) {
             return;
         }
 

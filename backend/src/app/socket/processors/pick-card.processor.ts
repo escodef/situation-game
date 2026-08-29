@@ -22,7 +22,7 @@ export const processPickCard: TSocketProcessor<TPickCardPayload> = async (ws: TE
         await client.query('BEGIN');
 
         const round = await GameRoundRepo.findById(roundId, client);
-        if (!round || round.status !== ERoundStatus.PICKING) {
+        if (round?.status !== ERoundStatus.PICKING) {
             ws.send({
                 event: ESocketOutcomeEvent.ERROR,
                 data: 'Сейчас нельзя выбирать карты',

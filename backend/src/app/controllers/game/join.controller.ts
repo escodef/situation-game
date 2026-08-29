@@ -1,15 +1,8 @@
 import { db, GameRepo, UserRepo } from 'database';
-import { type Context, NotFoundError } from 'elysia';
+import { NotFoundError } from 'elysia';
 import { BadRequestError, EGameStatus, type JoinGameDto, type TokenPayload } from 'shared';
 
-export const joinGame = async ({
-    body,
-    user,
-    set,
-}: Pick<Context, 'set'> & {
-    body: JoinGameDto;
-    user: TokenPayload;
-}) => {
+export const joinGame = async ({ body, user }: { body: JoinGameDto; user: TokenPayload }) => {
     const client = await db.connect();
 
     try {
@@ -23,7 +16,6 @@ export const joinGame = async ({
 
         if ('gameId' in body && !game.isOpen && !('code' in body)) {
             throw new BadRequestError('В закрытую игру нужен код');
-            
         }
 
         if (game.status !== EGameStatus.WAITING) {

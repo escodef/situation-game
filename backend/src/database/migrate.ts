@@ -23,7 +23,9 @@ export async function runMigrations() {
         return;
     }
 
-    const migrationFiles = fs.readdirSync(MIGRATIONS_DIR).sort();
+    const migrationFiles = fs.readdirSync(MIGRATIONS_DIR).sort((a, b) => {
+        return a.localeCompare(b);
+    });
 
     for (const file of migrationFiles) {
         const check = await client.query('SELECT id FROM _migrations WHERE name = $1', [file]);

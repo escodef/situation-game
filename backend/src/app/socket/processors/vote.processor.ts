@@ -22,12 +22,10 @@ export const processVote: TSocketProcessor<TVotePayload> = async (ws: TElysiaWS,
         const user = await UserRepo.findById(userId, client);
 
         if (!user?.gameId) {
-            ws.send(
-                {
-                    event: ESocketOutcomeEvent.ERROR,
-                    data: 'Вы не являетесь участником этой игры',
-                },
-            );
+            ws.send({
+                event: ESocketOutcomeEvent.ERROR,
+                data: 'Вы не являетесь участником этой игры',
+            });
             return;
         }
 
@@ -35,21 +33,17 @@ export const processVote: TSocketProcessor<TVotePayload> = async (ws: TElysiaWS,
 
         const curRound = await GameRoundRepo.findCurrentRound(gameId, client);
 
-        if (!curRound || curRound.status !== ERoundStatus.VOTING) {
-            ws.send(
-                {
-                    event: ESocketOutcomeEvent.ERROR,
-                    data: 'Голосование сейчас недоступно',
-                },
-            );
+        if (curRound?.status !== ERoundStatus.VOTING) {
+            ws.send({
+                event: ESocketOutcomeEvent.ERROR,
+                data: 'Голосование сейчас недоступно',
+            });
             return;
         }
 
         const existingVotes = await VoteRepo.findByRound(curRound.id, client);
         if (existingVotes.some((v) => v.voterId === userId)) {
-            ws.send(
-                { event: ESocketOutcomeEvent.ERROR, data: 'Вы уже проголосовали' },
-            );
+            ws.send({ event: ESocketOutcomeEvent.ERROR, data: 'Вы уже проголосовали' });
             return;
         }
 
@@ -77,12 +71,10 @@ export const processVote: TSocketProcessor<TVotePayload> = async (ws: TElysiaWS,
     } catch (error) {
         await client.query('ROLLBACK');
         console.error('processVote() error:', error);
-        ws.send(
-            {
-                event: ESocketOutcomeEvent.ERROR,
-                data: 'Ошибка сервера при голосовании',
-            },
-        );
+        ws.send({
+            event: ESocketOutcomeEvent.ERROR,
+            data: 'Ошибка сервера при голосовании',
+        });
     } finally {
         client.release();
     }

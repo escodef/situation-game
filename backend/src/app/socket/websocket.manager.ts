@@ -49,17 +49,15 @@ export const initWebsocketManager = (server: Server) => {
             } else if (type === 'room') {
                 if (includeSelf) {
                     appServer?.publish(targetId, payload);
-                } else {
-                    if (senderInstanceId === INSTANCE_ID) {
-                        const senderWs = users.get(senderId);
-                        if (senderWs) {
-                            senderWs.publish(targetId, payload);
-                        } else {
-                            appServer?.publish(targetId, payload);
-                        }
+                } else if (senderInstanceId === INSTANCE_ID) {
+                    const senderWs = users.get(senderId);
+                    if (senderWs) {
+                        senderWs.publish(targetId, payload);
                     } else {
                         appServer?.publish(targetId, payload);
                     }
+                } else {
+                    appServer?.publish(targetId, payload);
                 }
             }
         } catch (error) {
@@ -139,14 +137,14 @@ export const handleDisconnect = async (userId: string) => {
                 });
             } else if (user.game?.status === EGameStatus.STARTED) {
                 const round = await GameRoundRepo.findCurrentRound(user.gameId);
-                if (round && round.status === ERoundStatus.PICKING) {
+                if (round?.status === ERoundStatus.PICKING) {
                     const movesCount = await PlayerMoveRepo.countMovesInRound(round.id);
                     if (movesCount >= playersCount) {
                         const job = await gameQueue.getJob(`picking:${round.id}`);
                         if (job) await job.remove();
                         await GameLoopService.finishPicking(user.gameId, round.id);
                     }
-                } else if (round && round.status === ERoundStatus.VOTING) {
+                } else if (round?.status === ERoundStatus.VOTING) {
                     const votes = await VoteRepo.findByRound(round.id);
                     if (votes.length >= playersCount) {
                         const job = await gameQueue.getJob(`voting:${round.id}`);

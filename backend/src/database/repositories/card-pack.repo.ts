@@ -28,7 +28,7 @@ export const CardPackRepo = {
                 const { total_count, ...item } = row;
                 return item;
             }),
-            total: rows.length > 0 ? parseInt(rows[0].total_count, 10) : 0,
+            total: rows.length > 0 ? Number.parseInt(rows[0].total_count, 10) : 0,
         };
     },
 

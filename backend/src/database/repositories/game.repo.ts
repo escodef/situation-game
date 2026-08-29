@@ -141,7 +141,7 @@ export const GameRepo = {
             const game = rows[0];
 
             if (!game) {
-                throw new Error();
+                throw new Error('Игра не найдена');
             }
 
             const sitSql = `

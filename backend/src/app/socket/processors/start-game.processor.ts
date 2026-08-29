@@ -18,16 +18,14 @@ export const processStartGame: TSocketProcessor<TStartGamePayload> = async (ws: 
         await client.query('BEGIN');
 
         const game = await GameRepo.findByOwnerId(userId, client);
-        if (!game || game.status !== EGameStatus.WAITING) return;
+        if (game?.status !== EGameStatus.WAITING) return;
 
         const players = await UserRepo.getPlayersByGameId(game.id, client);
         if (players.length < 2) {
-            ws.send(
-                {
-                    event: ESocketOutcomeEvent.ERROR,
-                    data: 'Нужно минимум 2 игрока',
-                },
-            );
+            ws.send({
+                event: ESocketOutcomeEvent.ERROR,
+                data: 'Нужно минимум 2 игрока',
+            });
             return;
         }
 
@@ -41,9 +39,7 @@ export const processStartGame: TSocketProcessor<TStartGamePayload> = async (ws: 
     } catch (error) {
         await client.query('ROLLBACK');
         console.error('processStartGame() error:', error);
-        ws.send(
-            { event: ESocketOutcomeEvent.ERROR, data: 'Ошибка сервера при старте' },
-        );
+        ws.send({ event: ESocketOutcomeEvent.ERROR, data: 'Ошибка сервера при старте' });
     } finally {
         client.release();
     }
