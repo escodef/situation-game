@@ -1,12 +1,12 @@
-import { getOrThrow } from './utils';
+import { env } from './env';
 
 export const dayInMS = 24 * 60 * 60 * 1000;
 
 export const AUTH_CONFIG = {
-    accessExpires: Number.parseInt(getOrThrow(Bun.env.JWT_ACCESS_EXPIRES_IN), 10),
-    accessExpiresMs: Number.parseInt(getOrThrow(Bun.env.JWT_ACCESS_EXPIRES_IN), 10) * 1000,
-    refreshExpires: Number.parseInt(getOrThrow(Bun.env.JWT_REFRESH_EXPIRES_IN), 10),
-    refreshExpiresMs: Number.parseInt(getOrThrow(Bun.env.JWT_REFRESH_EXPIRES_IN), 10) * 1000,
-    accessSecret: getOrThrow(Bun.env.JWT_ACCESS_SECRET),
-    refreshSecret: getOrThrow(Bun.env.JWT_REFRESH_SECRET),
+    accessExpires: env.JWT_ACCESS_EXPIRES_IN,
+    accessExpiresMs: env.JWT_ACCESS_EXPIRES_IN * 1000,
+    refreshExpires: env.JWT_REFRESH_EXPIRES_IN,
+    refreshExpiresMs: env.JWT_REFRESH_EXPIRES_IN * 1000,
+    accessSecret: env.JWT_ACCESS_SECRET,
+    refreshSecret: env.JWT_REFRESH_SECRET,
 };

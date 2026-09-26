@@ -1,12 +1,12 @@
 import { db } from 'database/data-source';
-import { EUserRole, getOrThrow } from 'shared';
+import { EUserRole, env } from 'shared';
 
 export const seedAdmin = async () => {
     const client = await db.connect();
     try {
-        const adminEmail = getOrThrow(Bun.env.ADMIN_EMAIL);
-        const adminPassword = getOrThrow(Bun.env.ADMIN_PASSWORD);
-        const adminNickname = getOrThrow(Bun.env.ADMIN_NICKNAME);
+        const adminEmail = env.ADMIN_EMAIL;
+        const adminPassword = env.ADMIN_PASSWORD;
+        const adminNickname = env.ADMIN_NICKNAME;
 
         await client.query('BEGIN');
 

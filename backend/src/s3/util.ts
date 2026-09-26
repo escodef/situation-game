@@ -1,9 +1,9 @@
 import { DeleteObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
-import { getOrThrow } from 'shared';
+import { env } from 'shared';
 import { s3Client } from './client';
 
-const Bucket = getOrThrow(Bun.env.S3_BUCKET_NAME);
-const Endpoint = getOrThrow(Bun.env.S3_ENDPOINT);
+const Bucket = env.S3_BUCKET_NAME;
+const Endpoint = env.S3_ENDPOINT;
 
 export async function uploadFile(key: string, body: Buffer | Uint8Array, contentType: string) {
     const command = new PutObjectCommand({

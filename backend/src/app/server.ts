@@ -1,3 +1,4 @@
+import { captureException } from '@sentry/bun';
 import { SessionRepo } from 'database';
 import { Elysia, NotFoundError } from 'elysia';
 import {
@@ -48,9 +49,11 @@ export const createApp = (port: number) => {
                     set.status = 422;
                     return { success: false, message: 'Ошибка валидации', details: error.all };
                 case 'INTERNAL_SERVER_ERROR':
+                    captureException(error);
                     set.status = 500;
                     return { success: false, message: 'Внутренняя ошибка сервера' };
                 default:
+                    captureException(error);
                     set.status = 500;
                     return { success: false, message: 'Неизвестная ошибка' };
             }

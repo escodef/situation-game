@@ -1,5 +1,6 @@
 export * from './constants';
 export * from './enums';
+export * from './env';
 export * from './errors';
 export * from './interfaces';
 export * from './middlewares';

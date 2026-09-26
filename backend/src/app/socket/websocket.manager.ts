@@ -1,3 +1,4 @@
+import { captureException } from '@sentry/bun';
 import { randomUUID } from 'bullmq';
 import {
     GameRepo,
@@ -112,47 +113,52 @@ export const handleDisconnect = async (userId: string) => {
     await valkeyConnection.set(`presence:${userId}`, 'offline', 'EX', 30);
 
     setTimeout(async () => {
-        const presence = await valkeyConnection.get(`presence:${userId}`);
-        if (presence === 'online') return;
+        try {
+            const presence = await valkeyConnection.get(`presence:${userId}`);
+            if (presence === 'online') return;
 
-        const user = await UserRepo.findWithGame(userId);
+            const user = await UserRepo.findWithGame(userId);
 
-        if (user?.gameId) {
-            await UserRepo.leaveGame(userId);
+            if (user?.gameId) {
+                await UserRepo.leaveGame(userId);
 
-            const playersCount = await UserRepo.countPlayersInGame(user.gameId);
-
-            sendToGameRoom(user.gameId, {
-                event: ESocketOutcomeEvent.PLAYER_LEFT,
-                data: { userId },
-            });
-
-            if (playersCount < 2 && user.game?.status === EGameStatus.STARTED) {
-                await GameRepo.updateStatus(user.gameId, EGameStatus.FINISHED);
-                await PlayerHandRepo.clearAllGameData(user.gameId);
+                const playersCount = await UserRepo.countPlayersInGame(user.gameId);
 
                 sendToGameRoom(user.gameId, {
-                    event: ESocketOutcomeEvent.ERROR,
-                    data: 'Игроки покинули игру. Игра завершена досрочно.',
+                    event: ESocketOutcomeEvent.PLAYER_LEFT,
+                    data: { userId },
                 });
-            } else if (user.game?.status === EGameStatus.STARTED) {
-                const round = await GameRoundRepo.findCurrentRound(user.gameId);
-                if (round?.status === ERoundStatus.PICKING) {
-                    const movesCount = await PlayerMoveRepo.countMovesInRound(round.id);
-                    if (movesCount >= playersCount) {
-                        const job = await gameQueue.getJob(`picking:${round.id}`);
-                        if (job) await job.remove();
-                        await GameLoopService.finishPicking(user.gameId, round.id);
-                    }
-                } else if (round?.status === ERoundStatus.VOTING) {
-                    const votes = await VoteRepo.findByRound(round.id);
-                    if (votes.length >= playersCount) {
-                        const job = await gameQueue.getJob(`voting:${round.id}`);
-                        if (job) await job.remove();
-                        await GameLoopService.finishVoting(user.gameId, round.id);
+
+                if (playersCount < 2 && user.game?.status === EGameStatus.STARTED) {
+                    await GameRepo.updateStatus(user.gameId, EGameStatus.FINISHED);
+                    await PlayerHandRepo.clearAllGameData(user.gameId);
+
+                    sendToGameRoom(user.gameId, {
+                        event: ESocketOutcomeEvent.ERROR,
+                        data: 'Игроки покинули игру. Игра завершена досрочно.',
+                    });
+                } else if (user.game?.status === EGameStatus.STARTED) {
+                    const round = await GameRoundRepo.findCurrentRound(user.gameId);
+                    if (round?.status === ERoundStatus.PICKING) {
+                        const movesCount = await PlayerMoveRepo.countMovesInRound(round.id);
+                        if (movesCount >= playersCount) {
+                            const job = await gameQueue.getJob(`picking:${round.id}`);
+                            if (job) await job.remove();
+                            await GameLoopService.finishPicking(user.gameId, round.id);
+                        }
+                    } else if (round?.status === ERoundStatus.VOTING) {
+                        const votes = await VoteRepo.findByRound(round.id);
+                        if (votes.length >= playersCount) {
+                            const job = await gameQueue.getJob(`voting:${round.id}`);
+                            if (job) await job.remove();
+                            await GameLoopService.finishVoting(user.gameId, round.id);
+                        }
                     }
                 }
             }
+        } catch (error) {
+            console.error('Disconnect cleanup error:', error);
+            captureException(error, { extra: { userId } });
         }
     }, 30000);
 };

@@ -21,6 +21,7 @@
         "lint:check": "bunx biome lint",
         "format": "bunx biome format --write",
         "format:check": "bunx biome format",
+        "typecheck": "bunx tsc --noEmit",
         "db:migrate": "bun ./src/database/migrate.ts"
     },
     "dependencies": {
@@ -28,6 +29,7 @@
         "@elysiajs/cors": "^1.4.2",
         "@elysiajs/cron": "^1.4.2",
         "@elysiajs/openapi": "^1.4.16",
+        "@sentry/bun": "^11.0.0",
         "bullmq": "^6.3.9",
         "elysia": "^1.4.30",
         "ioredis": "^6.0.0",

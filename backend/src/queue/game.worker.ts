@@ -1,3 +1,4 @@
+import { captureException } from '@sentry/bun';
 import { Worker } from 'bullmq';
 import { valkeyConnection } from 'database';
 import { GameLoopService } from 'services';
@@ -22,3 +23,9 @@ export const gameWorker = new Worker(
     },
     { connection: valkeyConnection },
 );
+
+gameWorker.on('failed', (job, err) => {
+    captureException(err, {
+        extra: { jobId: job?.id, name: job?.name, data: job?.data },
+    });
+});

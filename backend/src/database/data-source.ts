@@ -1,9 +1,9 @@
 import { inspect } from 'bun';
 import { Pool } from 'pg';
-import { getOrThrow } from 'shared';
+import { env } from 'shared';
 
 const db = new Pool({
-    connectionString: getOrThrow(Bun.env.DATABASE_URL),
+    connectionString: env.DATABASE_URL,
     max: 20,
     connectionTimeoutMillis: 2000,
 });
