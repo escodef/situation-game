@@ -1,4 +1,3 @@
-import staticPlugin from '@elysiajs/static';
 import { SessionRepo } from 'database';
 import { Elysia, NotFoundError } from 'elysia';
 import {
@@ -56,8 +55,6 @@ export const createApp = (port: number) => {
                     return { success: false, message: 'Неизвестная ошибка' };
             }
         })
-        .use(staticPlugin({ assets: 'docs', prefix: '' }))
-        .get('/asyncapi', () => Bun.file('./docs/index.html'), { detail: { hide: true } })
         .use(sessionCleanupPlugin)
         .use(openApiPlugin)
         .use(corsPlugin)
