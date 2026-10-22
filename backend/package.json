@@ -25,23 +25,23 @@
         "db:migrate": "bun ./src/database/migrate.ts"
     },
     "dependencies": {
-        "@aws-sdk/client-s3": "^3.1141.0",
+        "@aws-sdk/client-s3": "^3.1156.0",
         "@elysiajs/cors": "^1.4.2",
         "@elysiajs/cron": "^1.4.2",
         "@elysiajs/openapi": "^1.4.16",
-        "@sentry/bun": "^11.0.0",
-        "bullmq": "^6.3.9",
+        "@sentry/bun": "^11.8.0",
+        "bullmq": "^6.4.0",
         "elysia": "^1.4.30",
         "ioredis": "^6.0.0",
         "jsonwebtoken": "^9.0.3",
-        "pg": "^8.23.0"
+        "pg": "^8.23.1"
     },
     "devDependencies": {
-        "@biomejs/biome": "^2.5.14",
-        "@types/bun": "^1.4.2",
+        "@biomejs/biome": "^2.6.2",
+        "@types/bun": "^1.4.3",
         "@types/jsonwebtoken": "^9.0.10",
         "@types/pg": "^8.23.1",
-        "bun-types": "^1.4.2",
+        "bun-types": "^1.4.4",
         "typescript": "^7.0.2"
     }
 }
