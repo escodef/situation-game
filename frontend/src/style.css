@@ -37,3 +37,40 @@
   background: #FFE600;
   border: 3px solid black;
 }
+
+/* Анимации Vue Transition */
+.pop-enter-active,
+.pop-leave-active {
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.pop-enter-from,
+.pop-leave-to {
+  opacity: 0;
+  transform: scale(0.85) translateY(15px);
+}
+
+.toast-enter-active,
+.toast-leave-active {
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.toast-enter-from {
+  opacity: 0;
+  transform: translateX(100%) scale(0.9);
+}
+.toast-leave-to {
+  opacity: 0;
+  transform: translateX(100%);
+}
+
+.card-list-enter-active,
+.card-list-leave-active {
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.card-list-enter-from {
+  opacity: 0;
+  transform: translateY(60px) rotate(6deg);
+}
+.card-list-leave-to {
+  opacity: 0;
+  transform: translateY(-80px) scale(0.7);
+}
