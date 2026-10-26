@@ -26,3 +26,4 @@ dist-ssr
 .vscode/
 .env
 
+frontend_dump.txt
