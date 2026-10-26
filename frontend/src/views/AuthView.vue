@@ -64,9 +64,11 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { http } from '@/api/http';
 import { useAuthStore } from '@/stores/auth';
+import { useToastStore } from '@/stores/toast';
 
 const router = useRouter();
 const authStore = useAuthStore();
+const toast = useToastStore();
 const isRegister = ref(false);
 
 const form = ref({
@@ -76,18 +78,33 @@ const form = ref({
 });
 
 const submit = async () => {
+  if (!form.value.email.includes('@')) {
+    toast.warning('Введи корректный адрес почты!');
+    return;
+  }
+  if (form.value.password.length < 8) {
+    toast.warning('Минимальная длина пароля — 8 символов!');
+    return;
+  }
+  if (isRegister.value && form.value.nickname.trim().length < 4) {
+    toast.warning('Никнейм должен быть не короче 4 символов!');
+    return;
+  }
+
   try {
     if (isRegister.value) {
       await http.post('/auth/register', form.value);
+      toast.success('Аккаунт создан! Входим...');
     }
     const { data } = await http.post('/auth/login', {
       email: form.value.email,
       password: form.value.password,
     });
     authStore.setAuth(data.user, data.accessToken);
+    toast.success(`С возвращением, ${data.user.nickname}!`);
     router.push('/');
   } catch (err: any) {
-    alert(err.response?.data?.message || 'Ошибка авторизации');
+    toast.error(err.response?.data?.message || 'Ошибка авторизации');
   }
 };
 </script>
