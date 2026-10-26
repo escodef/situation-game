@@ -1,6 +1,6 @@
 import { init } from '@sentry/bun';
 import { initWebsocketManager } from 'app/socket';
-import { runMigrations, seedAdmin, seedSituations } from 'database';
+import { runMigrations, seedAdmin, seedCards, seedSituations } from 'database';
 import { env } from 'shared';
 import { createApp } from './app/server';
 
@@ -13,6 +13,7 @@ async function bootstrap() {
     await runMigrations();
     await seedSituations();
     await seedAdmin();
+    await seedCards();
 
     const app = createApp(env.PORT);
 

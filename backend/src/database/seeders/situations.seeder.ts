@@ -1,6 +1,6 @@
 import { db } from '../data-source';
 
-export const initSituations = {
+const initSituations = {
     categories: {
         1: {
             id: 1,
@@ -4148,7 +4148,7 @@ export const seedSituations = async () => {
         );
         const packId = packRes.rows[0].id;
 
-        const values: (string | boolean | null)[] = [];
+        const values: (string | boolean)[] = [];
         const placeholders: string[] = [];
         let counter = 1;
 
@@ -4161,7 +4161,7 @@ export const seedSituations = async () => {
 
         if (values.length > 0) {
             const sql = `
-                INSERT INTO "situations" (text, is_adult, category, situation_pack_id) 
+                INSERT INTO "situations" (text, is_adult, category, situation_pack_id)
                 VALUES ${placeholders.join(', ')}
             `;
             await client.query(sql, values);

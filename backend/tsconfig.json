@@ -10,7 +10,7 @@
         "removeComments": true,
         "allowSyntheticDefaultImports": true,
         "paths": {
-            "*": ["./src/*"],
+            "*": ["./src/*"]
         },
         "skipLibCheck": true,
         "noImplicitAny": true,
