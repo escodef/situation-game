@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #FFFDF0;
+    color: #121212;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    user-select: none;
+    overflow-x: hidden;
+  }
+}
+
+.neo-box {
+  @apply bg-white border-4 border-black shadow-neo rounded-xl transition-all;
+}
+
+.neo-box-hover {
+  @apply hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-neo-lg active:translate-x-1 active:translate-y-1 active:shadow-neo-press;
+}
+
+.neo-btn {
+  @apply px-5 py-2.5 font-black uppercase tracking-wider border-4 border-black shadow-neo rounded-xl transition-all active:translate-x-1 active:translate-y-1 active:shadow-neo-press cursor-pointer flex items-center justify-center gap-2;
+}
+
+/* Стилизация скроллбара */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #FFFDF0;
+  border-left: 3px solid black;
+}
+::-webkit-scrollbar-thumb {
+  background: #FFE600;
+  border: 3px solid black;
+}
